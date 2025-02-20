@@ -1,0 +1,22 @@
+{
+    "name": "Linebot_FastAPI",
+
+    "dockerComposeFile": [
+      "../docker-compose.yml"
+    ],
+    "service": "web",
+    "workspaceFolder": "/workspace",
+    "shutdownAction": "stopCompose",
+    "settings": {
+      "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+      "ms-python.python",
+      "ms-azuretools.vscode-docker",
+      "ionutvmi.path-autocomplete",
+      "github.copilot",
+      "bierner.markdown-preview-github-styles"
+    ],
+    "postCreateCommand": "pip install -r requirements.txt"
+  }
+  
