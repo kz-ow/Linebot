@@ -1,0 +1,21 @@
+# Pythonキャッシュ
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# エディタ関連ファイル
+*.swp
+*.swo
+
+# Git管理ディレクトリ
+.git
+.gitignore
+
+# Pythonのパッケージ関連
+*.egg-info
+dist
+build
+
+# 環境変数ファイル（セキュリティ上、ビルドコンテキストに含めたくない場合）
+.env

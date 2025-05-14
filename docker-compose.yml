@@ -1,28 +1,52 @@
-version: "3.9"
+version: "3.12"
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      network: host  # ビルド時にホストネットワークを利用
     container_name: fastapi_linebot
     ports:
-      - "8000:8000"
+      - "8000:8000"        # 外部に公開
     environment:
-      - LINE_CHANNEL_SECRET = line_channel_secret
-      - CHANNEL_ACCESS_TOKEN = channel_access_token
-      - DATABASE_URL=postgresql://postgres:password@db:5432/fastapi_linebot
+      - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
+      - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
+      - DATABASE_URL=${POSTGRES_URL}
+      - NEWS_API_KEY=${NEWS_API_KEY}
+      - NEWS_API_URL=${NEWS_API_URL}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_REGION=${GEMINI_REGION}
+      - DEEPL_API_KEY=${DEEPL_API_KEY}
     depends_on:
       - db
-  
+    volumes:
+      - ./app:/app/app:cached
+      - ./.env:/app/.env:ro
+    networks:
+      - public_network
+      - internal_network
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
   db:
     image: postgres:13
     container_name: postgres_db
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    ports:
-      - "5432:5432"
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  
+    networks:
+      - internal_network
+
+networks:
+  public_network:
+    driver: bridge
+  internal_network:
+    internal: true   # 外部から隔離された内部ネットワーク
+
 volumes:
   postgres_data:

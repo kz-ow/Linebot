@@ -1,61 +1,155 @@
-# api/controllers/line_controller.py
-import hmac
-import hashlib
-import base64
-import json
-from fastapi import HTTPExeption
-from app.services import line_service
+import hmac, hashlib, base64, json
+from typing import Dict, Any
+from fastapi import HTTPException, Request
+
 from app.config import settings
 from app.database import async_session
-from app import crud
-from app.schemas import UserCreate
+from app.crud.user import (
+    set_subscription,
+    get_subscription,
+    get_enabled_category,
+)
+from app.services.keyword_service import extract_keywords
+from app.services.news_service import fetch_latest_news_by_category
+from app.services.llm_service   import summarize            # 既存処理で使用
+from app.services.line_service import (
+    reply_text_message,
+    push_summarized_text,
+    push_text_message,
+)
 
-async def handle_webhook(raw_body: bytes, headers):
-    signature = headers.get('x-line-signature')
-    if not signature or not verify_signature(raw_body, signature):
-        raise HTTPException(status_code=400, detail="Invalid signature")
-    
-    payload = json.loads(raw_body)
+# ──────────────────────────────────────────────
+#   署名検証
+# ──────────────────────────────────────────────
+def verify_signature(raw: bytes, sig: str) -> bool:
+    digest = hmac.new(
+        settings.LINE_CHANNEL_SECRET.encode(), raw, hashlib.sha256
+    ).digest()
+    return base64.b64encode(digest).decode() == sig
+
+# ──────────────────────────────────────────────
+#   Webhook エントリ
+# ──────────────────────────────────────────────
+async def handle_webhook(request: Request):
+    raw = await request.body()
+    sig = request.headers.get("X-Line-Signature", "")
+    if not sig or not verify_signature(raw, sig):
+        raise HTTPException(400, "Invalid signature")
+
+    try:
+        payload: Dict[str, Any] = json.loads(raw.decode())
+    except json.JSONDecodeError:
+        raise HTTPException(400, "Invalid JSON")
+
     events = payload.get("events", [])
     if not events:
-        raise HTTPException(status=400, detail="No events in payload")
-    
-    for event in events:
-        print("Recived event: ", event)
-        if event.get("type") == "message" and event.get("message", {}).get("type") == "text":
-            text = event["message"]["text"].strip().lower()
-            user_id =event["source"]["userId"]
+        return {"status": "OK"}
 
-            if text == "subscribe":
-                updated_user = await crud.update_user_subscription_status(db, user_id, True)
-                if updated_user:
-                    await line_service.send_text_message(user_id, "購読設定が有効になりました。")
-                else:
-                    new_user = await crud.create_user(db, UserCreate(line_id=user_id))
-                    await line_service.send_text_message(user_id, "新規登録され，購読設定が有効になりました。")
-            elif text == "unsubscribe":
-                updated_user = await crud.update_user_subcription_status(db, user_id, False)
-                if updated_user:
-                    await line_service.send_text_message(user_id, "購読設定が無効になっています。")
-                else:
-                    await line_service.send_text_message(user_id, "購読設定が無効になっています。")
-            else:
-                await line_service.send_text_message(user_id, "コマンドが認識されません。 'subscribe' または 'unsubscribe' を送信してください。")
+    print(f"[INFO] payload: {payload}")
+
+    async with async_session() as db:
+        for event in events:
+            ev_type = event.get("type")
+            src     = event.get("source", {}) or {}
+            line_id = src.get("userId")
+            token   = event.get("replyToken")
+
+            # ──────────── follow ────────────
+            if ev_type == "follow" and line_id:
+                await set_subscription(db, line_id, True)
+                await push_text_message(
+                    line_id,
+                    "🎉 友だち追加ありがとうございます！\n"
+                    "まずはリッチメニューの『トピック設定』から興味のある分野を選んでください。"
+                )
+                continue
+
+            # ──────────── unfollow ───────────
+            if ev_type == "unfollow" and line_id:
+                await set_subscription(db, line_id, False)
+                continue
+
+            # ──────────── postback ───────────
+            if ev_type == "postback" and line_id:
+                data   = event["postback"].get("data", "")
+                params = dict(p.split("=", 1) for p in data.split("&") if "=" in p)
+                act    = params.get("action")
+
+                # LIFF で完結するようになったので
+                # open_category_menu / select / done は削除
+
+                if act == "subscribe":
+                    await set_subscription(db, line_id, True)
+                    if token:
+                        await reply_text_message(token, "購読を開始しました！")
+                    continue
+
+                if act == "unsubscribe":
+                    await set_subscription(db, line_id, False)
+                    if token:
+                        await reply_text_message(token, "購読を解除しました。")
+                    continue
+
+                if act == "status" and token:
+                    sub = await get_subscription(db, line_id)
+                    msg = "🎉 現在購読中です。" if sub else "🚫 未購読です。"
+                    await reply_text_message(token, msg)
+                    continue
+
+                # 不明ポストバック
+                if token:
+                    await reply_text_message(token, "不明な操作です。メニューからお選びください。")
+                continue
+
+            # ──────────── message (text) ─────
+            if (
+                ev_type == "message"
+                and event["message"].get("type") == "text"
+                and line_id and token
+            ):
+                text = event["message"]["text"].strip()
+
+                # 選択済みトピック取得（LIFF 側で保存されたもの）
+                categories = await get_enabled_category(db, line_id)
+                print(f"[INFO] User {line_id} category: {categories}")
+                if not categories:
+                    await reply_text_message(
+                        token,
+                        "トピックが設定されていません。\n"
+                        "リッチメニューから『トピック設定』を開いてください。"
+                    )
+                    continue
+
+                # キーワード抽出 → ニュース取得 → 要約
+                keywords = extract_keywords(text)
+                articles = await fetch_latest_news_by_category(
+                    categories=categories,
+                    keywords=keywords,
+                    page_size=5
+                ) if keywords else []
+
+                await push_summarized_text(line_id=line_id, articles=articles)
+
+                # 簡易 subscribe/unsubscribe/status コマンドも保持
+                low = text.lower()
+                if low in ("subscribe", "unsubscribe", "status"):
+                    if low == "subscribe":
+                        await set_subscription(db, line_id, True)
+                        await reply_text_message(token, "購読を開始しました！")
+                    elif low == "unsubscribe":
+                        await set_subscription(db, line_id, False)
+                        await reply_text_message(token, "購読を解除しました。")
+                    else:
+                        sub = await get_subscription(db, line_id)
+                        msg = "🎉 現在購読中です。" if sub else "🚫 未購読です。"
+                        await reply_text_message(token, msg)
+                    continue
+
+                # fallback
+                await reply_text_message(
+                    token,
+                    "コマンドが認識されません。\nリッチメニューから操作してください。"
+                )
+                continue
+
     return {"status": "OK"}
-
-
-# 署名の検証（HMACを用いたHMAC-SHA256認証: LINE Botの標準の認証方法）
-# 受信リクエストの認証: リクエストの真正性のみを検証
-# 受信したリクエストのBodyのハッシュ値とリクエストヘッダのx-line-signatureの検証
-def verify_signature(raw_body:bytes, signature: str) -> bool:
-    hash_digest = hmac.new(
-        settings.LINE_CHANNEL_SECRET.encode('utf-8'),
-        raw_body,
-        hashlib.sha256
-    ).digest()
-
-    computed_signature = base64.b64encode(hash_digest).decode('utf-8')
-    return computed_signature == signature
-
-                
-

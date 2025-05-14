@@ -1,11 +1,13 @@
-# app/routers/line.py
+# api/routers/line.py
 from fastapi import APIRouter, Request
-from app.counrollers import line_countroler
+from app.controllers import line_controller
 
 router = APIRouter()
 
 @router.post("/")
 async def webhook(request: Request):
-    raw_body = await request.body()
-    headers = request.headers
-    return await line_countroler.handle_webhook(raw_body, headers)
+    """
+    LINEプラットフォームからのWebhookを受け取るエンドポイント。
+    Requestごと丸投げして、コントローラ内でbody, headersを参照します。
+    """
+    return await line_controller.handle_webhook(request)
