@@ -8,7 +8,6 @@ from app.database import async_session
 from app.crud.user import set_categories
 from app.schemas.category_payload import CategoryPayload
 
-
 router = APIRouter()
 
 async def get_db() -> AsyncSession:
@@ -21,6 +20,7 @@ async def get_line_user_id(
     """
     Authorization: Bearer <LIFF ID Token> から userId を取得
     """
+    print(f"[INFO] Authorization: {authorization}")
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing id_token")
 
@@ -30,7 +30,7 @@ async def get_line_user_id(
             "https://api.line.me/oauth2/v2.1/verify",
             data={
                 "id_token": id_token,
-                "client_id": settings.LINE_CHANNEL_ID,
+                "client_id": settings.LINE_CHANNEL_SECRET
             },
         )
     if resp.status_code != 200:
@@ -39,14 +39,30 @@ async def get_line_user_id(
     return resp.json()["sub"]  # LINE userId
 
 
-@router.post(
-    "/",                                     
-    status_code=status.HTTP_204_NO_CONTENT,  
-)
+@router.post("/category")
 async def post_category(
+    payload: CategoryPayload,                     
+    user_id: Annotated[str, Depends(get_line_user_id)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):  
+    print(f"[INFO] Received category payload: {payload}")
+    await set_categories(db, user_id, payload.topics)
+
+@router.post("/detail")
+async def post_detail(
     payload: CategoryPayload,
-    response: Response,                      
     user_id: Annotated[str, Depends(get_line_user_id)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
+    print(f"[INFO] Received detail payload: {payload}")
     await set_categories(db, user_id, payload.topics)
+
+@router.post("/regular")
+async def post_regular(
+
+):
+    pass
+
+@router.post("/")
+async def test():
+    return {"message": "Hello, World!"}

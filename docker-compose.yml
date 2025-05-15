@@ -18,6 +18,10 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_REGION=${GEMINI_REGION}
       - DEEPL_API_KEY=${DEEPL_API_KEY}
+      - LIFF_ID_DETAIL=${LIFF_ID_DETAIL}
+      - LIFF_ID_REGULAR=${LIFF_ID_REGULAR}
+      - LIFF_ID_CATEGORY=${LIFF_ID_CATEGORY}
+
     depends_on:
       - db
     volumes:

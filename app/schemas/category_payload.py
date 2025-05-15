@@ -1,7 +1,7 @@
 # app.schemas.category_payload.py
 from typing import List
 from pydantic import BaseModel, Field, validator
-from app.models.topic import TOPIC_CHOICES  # enum または定数集合
+from app.config import settings  # enum または定数集合
 
 
 class CategoryPayload(BaseModel):
@@ -9,6 +9,7 @@ class CategoryPayload(BaseModel):
 
     @validator("topics", each_item=True)
     def check_topic(cls, v: str) -> str:
+        TOPIC_CHOICES = [key for key, _ in settings.TOPICS]
         if v not in TOPIC_CHOICES:
             raise ValueError(f"invalid topic: {v}")
         return v

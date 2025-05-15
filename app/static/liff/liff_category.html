@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store">
   <title>トピック選択</title>
 
   <!-- Tailwind CDN -->
@@ -113,8 +114,9 @@
 
   <script>
 /* ===== 環境設定 ===== */
-const LIFF_ID       =    // 実 LIFF ID
-const POST_ENDPOINT = '';
+const LIFF_ID       = "2007363432-ngL46PL1" 
+// const POST_ENDPOINT = "/app/register/category/";
+const POST_ENDPOINT = "/app/register/"; // 相対 or 絶対 URL
 /* ================== */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -135,8 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     sendBtn.disabled = !document.querySelector('input[name="topic"]:checked');
   }));
 
-  
-
   sendBtn.addEventListener('click', async () => {
     const chosen = document.querySelector('input[name="topic"]:checked')?.value;
     if (!chosen) return;
@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
 
     try {
+      console.log(POST_ENDPOINT);
       const res = await fetch(POST_ENDPOINT, {
         method : 'POST',
         headers: headers,

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store">
+  <title>定期更新の設定</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- LIFF SDK v2 -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    /* ── ラジオをスイッチ風に ── */
+    .switch {
+      --w: 3rem;
+      --h: 1.6rem;
+      position: relative;
+      width: var(--w);
+      height: var(--h);
+    }
+    .switch input { @apply sr-only; }
+    .slider {
+      position: absolute; inset: 0;
+      background: #cbd5e1; border-radius: 9999px; transition: .2s;
+    }
+    .slider::before {
+      content: ""; position: absolute;
+      height: calc(var(--h) - .4rem); width: calc(var(--h) - .4rem);
+      left: .2rem; bottom: .2rem;
+      background: #fff; border-radius: 9999px; transition: .2s;
+    }
+    input:checked + .slider  { background: #2563eb; }
+    input:checked + .slider::before {
+      transform: translateX(calc(var(--w) - var(--h)));
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-md bg-white rounded-xl shadow p-6">
+    <h1 class="text-lg font-bold mb-5 text-center">定期更新の設定</h1>
+
+    <form id="topicForm" class="grid gap-3 select-none">
+      <div class="flex items-center justify-between p-3 rounded-lg border">
+        <span id="lbl-on">定期更新を有効にする</span>
+        <label class="switch" for="radio-on">
+          <input id="radio-on" type="radio" name="scheduler" value="ON" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between p-3 rounded-lg border">
+        <span id="lbl-off">定期更新を無効にする</span>
+        <label class="switch" for="radio-off">
+          <input id="radio-off" type="radio" name="scheduler" value="OFF" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </form> <!-- ← 閉じ忘れを追加 -->
+
+    <button id="sendButton"
+            class="mt-6 w-full py-2 rounded-md text-white bg-blue-600
+                   disabled:bg-gray-400 transition-colors"
+            disabled>
+      送　信
+    </button>
+  </div>
+
+  <script type="module">
+/* ===== 環境設定 ===== */
+const LIFF_ID       = "2007363432-qok1nLkv";      // build 時に置換
+const POST_ENDPOINT = "api/register/regular/";    // 相対 or 絶対 URL
+/* ================== */
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const insideLiff = typeof window.liff !== 'undefined';
+  let idToken = null;
+
+  if (insideLiff) {
+    await liff.init({ liffId: LIFF_ID });
+    await liff.ready;
+    idToken = liff.getIDToken();
+  }
+
+  const radios  = document.querySelectorAll('input[name="scheduler"]');
+  const sendBtn = document.getElementById('sendButton');
+
+  // ラジオ選択でボタン活性化
+  radios.forEach(r => r.addEventListener('change', () => {
+    sendBtn.disabled = !document.querySelector('input[name="scheduler"]:checked');
+  }));
+
+  sendBtn.addEventListener('click', async () => {
+    const chosen = document.querySelector('input[name="scheduler"]:checked')?.value;
+    if (!chosen) return;       // 念のため
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+
+    try {
+      console.log(POST_ENDPOINT)
+      const res = await fetch(POST_ENDPOINT, {
+        method : 'POST',
+        headers: headers,
+        body   : JSON.stringify({ scheduler: chosen }) // ← payload を scheduler 用に
+      });
+      if (!res.ok) throw new Error('server ' + res.status);
+
+      if (insideLiff) {
+        await liff.closeWindow();
+      } else {
+        alert('送信しました！（プレビュー）');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('送信に失敗しました');
+    }
+  });
+});
+  </script>
+</body>
+</html>
