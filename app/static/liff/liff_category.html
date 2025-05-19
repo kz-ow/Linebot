@@ -105,10 +105,11 @@
     </form>
 
     <button id="sendButton"
+            type="button"
             class="mt-6 w-full py-2 rounded-md text-white bg-blue-600
                    disabled:bg-gray-400 transition-colors"
             disabled>
-      送　信
+      送　信（button）
     </button>
   </div>
 
@@ -116,7 +117,7 @@
 /* ===== 環境設定 ===== */
 const LIFF_ID       = "2007363432-ngL46PL1" 
 // const POST_ENDPOINT = "/app/register/category/";
-const POST_ENDPOINT = "/app/register/"; // 相対 or 絶対 URL
+const POST_ENDPOINT = "/register/category/"; // 相対 or 絶対 URL
 /* ================== */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -126,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (insideLiff) {
     await liff.init({ liffId: LIFF_ID });
     await liff.ready;
-    idToken = liff.getIDToken();
+    idToken = liff.getIDToken() || null;  // ← 再代入
   }
 
   const radios  = document.querySelectorAll('input[name="topic"]');
@@ -140,28 +141,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   sendBtn.addEventListener('click', async () => {
     const chosen = document.querySelector('input[name="topic"]:checked')?.value;
     if (!chosen) return;
-
     const headers = { 'Content-Type': 'application/json' };
     if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
-
+    
     try {
-      console.log(POST_ENDPOINT);
-      const res = await fetch(POST_ENDPOINT, {
-        method : 'POST',
-        headers: headers,
-        body   : JSON.stringify({ topics: [chosen] })
-      });
-      if (!res.ok) throw new Error('server ' + res.status);
+          const res = await fetch(POST_ENDPOINT, {
+            method : 'POST',
+            headers: headers,
+            body   : JSON.stringify({ topic: [chosen] })
+          });
 
-      if (insideLiff) {
-        await liff.closeWindow();
-      } else {
-        alert('送信しました！（プレビュー）');
+          if (!res.ok) throw new Error('server ' + res.status);
+          console.log('POST success');
+
+          /* 成功メッセージを表示 */
+          statusMsg.textContent = '完了しました';
+          statusMsg.classList.remove('hidden');
+
+          if (insideLiff) {
+            setTimeout(() => liff.closeWindow(), 1000); // 1 秒後に自動クローズ
+          }
+        } catch (err) {
+          console.error('POST failed:', err);
+          alert('送信に失敗しました');
       }
-    } catch (err) {
-      console.error(err);
-      alert('送信に失敗しました');
-    }
   });
 });
   </script>

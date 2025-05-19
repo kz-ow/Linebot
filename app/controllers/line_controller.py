@@ -75,9 +75,6 @@ async def handle_webhook(request: Request):
                 params = dict(p.split("=", 1) for p in data.split("&") if "=" in p)
                 act    = params.get("action")
 
-                # LIFF で完結するようになったので
-                # open_category_menu / select / done は削除
-
                 if act == "subscribe":
                     await set_subscription(db, line_id, True)
                     if token:
@@ -144,12 +141,5 @@ async def handle_webhook(request: Request):
                         msg = "🎉 現在購読中です。" if sub else "🚫 未購読です。"
                         await reply_text_message(token, msg)
                     continue
-
-                # fallback
-                await reply_text_message(
-                    token,
-                    "コマンドが認識されません。\nリッチメニューから操作してください。"
-                )
-                continue
 
     return {"status": "OK"}
