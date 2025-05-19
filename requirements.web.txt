@@ -16,3 +16,4 @@ gensim==4.3.3
 python-dateutil==2.9.0.post0
 deepl
 python-jose==3.4.0
+tavily-python

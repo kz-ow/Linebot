@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     LIFF_ID_DETAIL: str
     LIFF_ID_REGULAR: str
     LIFF_ID_CATEGORY: str
+    TAVILY_API_KEY: str
+    
 
     TOPICS: tuple[tuple[str, str], ...] = (
         ("business",      "ビジネス"),

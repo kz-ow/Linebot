@@ -21,6 +21,7 @@ services:
       - LIFF_ID_DETAIL=${LIFF_ID_DETAIL}
       - LIFF_ID_REGULAR=${LIFF_ID_REGULAR}
       - LIFF_ID_CATEGORY=${LIFF_ID_CATEGORY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
 
     depends_on:
       - db

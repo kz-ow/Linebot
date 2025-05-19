@@ -2,11 +2,12 @@
 from __future__ import annotations
 from linebot import LineBotApi
 from linebot.models import (
-    TextSendMessage,
-    ImageSendMessage,
+    TextSendMessage,ImageSendMessage,
+    FlexSendMessage, BubbleContainer, BoxComponent,
+    TextComponent, ImageComponent, ButtonComponent, URIAction,
+    CarouselContainer
 )
 from app.config import settings
-from app.services.llm_service import summarize
 import time
 from jose import jwk, jwt
 from jose.utils import base64url_decode
@@ -53,11 +54,15 @@ async def push_image_message(user_id: str, image_url: str):
 # =================================================
 # 3. 要約
 # =================================================
-async def push_summarized_text(line_id: str, articles: str):
+async def push_summarized_text(line_id: str, articles: str, summaries: str):
     print(f"articles: {articles}")
-    summary = await summarize(articles)
-    print(f"push_summarized_text: {summary}")
-    _push(line_id, TextSendMessage(text=summary))
+    bubbles = [build_flex_for_article(a, s) for a, s in zip(articles, summaries)]
+    carousel = CarouselContainer(contents=bubbles)
+    flex = FlexSendMessage(
+        alt_text='要約記事',
+        contents=carousel
+    )
+    _push(line_id, flex)
 
 # =================================================
 # 4. IDトークン検証
@@ -103,3 +108,43 @@ async def get_line_user_id(
     claims = await verify_id_token(id_token)
     return claims["sub"]
 
+
+# =================================================
+# 5. Flex Messageの作成
+# =================================================
+def build_flex_for_article(art: dict) -> BubbleContainer:
+    """
+    art に title,url,image_url,published_at,summary,points が含まれる想定
+    """
+    # ポイントを BoxComponent の中に TextComponent で並べる
+    point_components = [TextComponent(text=p, size="xs", wrap=True, margin="xs") for p in art["points"]]
+
+    return BubbleContainer(
+        direction='ltr',
+        # hero=ImageComponent(
+        #     url=art.get("image_url") or "https://example.com/placeholder.png",
+        #     size='full', aspectRatio='20:13', aspectMode='cover'
+        # ),
+        body=BoxComponent(
+            layout='vertical', spacing='sm',
+            contents=[
+                TextComponent(text=art["title"], weight='bold', size='lg', wrap=True),
+                TextComponent(text=f"🕒 {art.get('published_at')}", size='xs', color='#999999'),
+                # 要約
+                TextComponent(text=art["summary"], wrap=True, margin="md"),
+                # 要点ヘッダ
+                TextComponent(text="🔑 要点", weight='bold', size='sm', margin="md"),
+                # 箇条書き
+                *point_components,
+            ]
+        ),
+        footer=BoxComponent(
+            layout='vertical',
+            contents=[
+                ButtonComponent(
+                    style='link', height='sm',
+                    action=URIAction(label='▶️ 詳細を見る', uri=art["url"])
+                )
+            ]
+        )
+    )

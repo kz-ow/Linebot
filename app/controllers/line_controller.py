@@ -1,7 +1,6 @@
 import hmac, hashlib, base64, json
 from typing import Dict, Any
 from fastapi import HTTPException, Request
-
 from app.config import settings
 from app.database import async_session
 from app.crud.user import (
@@ -9,14 +8,13 @@ from app.crud.user import (
     get_subscription,
     get_enabled_category,
 )
-from app.services.keyword_service import extract_keywords
-from app.services.news_service import fetch_latest_news_by_category
-from app.services.llm_service   import summarize            # 既存処理で使用
+from app.services.tavliy_services import search_articles
 from app.services.line_service import (
     reply_text_message,
     push_summarized_text,
     push_text_message,
 )
+from app.services.gemini_service import summarize_articles
 
 # ──────────────────────────────────────────────
 #   署名検証
@@ -117,15 +115,13 @@ async def handle_webhook(request: Request):
                     )
                     continue
 
-                # キーワード抽出 → ニュース取得 → 要約
-                keywords = extract_keywords(text)
-                articles = await fetch_latest_news_by_category(
-                    categories=categories,
-                    keywords=keywords,
-                    page_size=5
-                ) if keywords else []
+                # 記事の検索
+                articles = await search_articles(text=text)
 
-                await push_summarized_text(line_id=line_id, articles=articles)
+                # 要約の取得
+                summaries = await summarize_articles(articles=articles)
+
+                await push_summarized_text(line_id=line_id, articles=articles, summaries=summaries)
 
                 # 簡易 subscribe/unsubscribe/status コマンドも保持
                 low = text.lower()
