@@ -1,11 +1,11 @@
 # app/services/line_service.py
-from __future__ import annotations
+from typing import List
 from linebot import LineBotApi
 from linebot.models import (
     TextSendMessage,ImageSendMessage,
     FlexSendMessage, BubbleContainer, BoxComponent,
     TextComponent, ImageComponent, ButtonComponent, URIAction,
-    CarouselContainer
+    CarouselContainer, SeparatorComponent
 )
 from app.config import settings
 import time
@@ -54,9 +54,11 @@ async def push_image_message(user_id: str, image_url: str):
 # =================================================
 # 3. 要約
 # =================================================
-async def push_summarized_text(line_id: str, articles: str, summaries: str):
-    print(f"articles: {articles}")
-    bubbles = [build_flex_for_article(a, s) for a, s in zip(articles, summaries)]
+async def push_summarized_text(line_id: str, articles: str, summaries: str, images: List[str]):
+    print("images[0]:", images[0])
+
+    bubbles = [build_flex_for_article(a, s, i) for a, s, i in zip(articles, summaries, images)]
+    print("bubbles[0]:", bubbles[0])
     carousel = CarouselContainer(contents=bubbles)
     flex = FlexSendMessage(
         alt_text='要約記事',
@@ -112,27 +114,77 @@ async def get_line_user_id(
 # =================================================
 # 5. Flex Messageの作成
 # =================================================
-def build_flex_for_article(art: dict, summary: str) -> BubbleContainer:
-    return BubbleContainer(
-        direction='ltr',
-        body=BoxComponent(
-            layout='vertical',
-            spacing='md',
+def build_flex_for_article(
+    art: dict,
+    summary: str,
+    img_url: str | None = None
+) -> BubbleContainer:
+    # hero 部分（画像がなければ hero 自体を None にしてもOK）
+    hero = ImageComponent(
+        url=img_url,
+        size="full",
+        aspect_ratio="16:9",
+        aspect_mode="cover"
+    ) if img_url else None
+
+    # ボディの中身
+    body_contents = []
+    if hero:
+        body_contents.append(hero)
+
+    body_contents.append(
+        BoxComponent(
+            layout="vertical",
+            spacing="md",
+            padding_all="16px",
             contents=[
-                TextComponent(text=art["title"], weight='bold', size='xl', wrap=True),
-                TextComponent(text=f"🕒 {art.get('published_at')}", size='xs', color='#999999'),
-                TextComponent(text=summary, wrap=True, margin='md'),
-            ]
-        ),
-        footer=BoxComponent(
-            layout='vertical',
-            contents=[
-                ButtonComponent(
-                    style='link',
-                    height='sm',
-                    action=URIAction(label='▶️ 詳細を見る', uri=art["url"])
-                )
+                # タイトル
+                TextComponent(
+                    text=art.get("title", ""),
+                    weight="bold",
+                    size="xl",
+                    wrap=True
+                ),
+                # 日付のみ（時計アイコン＋日付）
+                TextComponent(
+                    text=f"🕒 {art.get('published_date','')}",
+                    size="xs",
+                    color="#888888",
+                    margin="sm"
+                ),
+                # 区切り線
+                SeparatorComponent(margin="md"),
+                # 要約
+                TextComponent(
+                    text=summary,
+                    size="sm",
+                    wrap=True,
+                    margin="md"
+                ),
             ]
         )
+    )
+
+    # フッター
+    footer = BoxComponent(
+        layout="vertical",
+        spacing="sm",
+        padding_all="16px",
+        contents=[
+            ButtonComponent(
+                style="primary",
+                height="sm",
+                action=URIAction(
+                    label="▶️ 詳細を見る",
+                    uri=art.get("url", "")
+                )
+            )
+        ]
+    )
+
+    return BubbleContainer(
+        direction="ltr",
+        body=BoxComponent(layout="vertical", contents=body_contents),
+        footer=footer
     )
 

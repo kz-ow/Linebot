@@ -116,12 +116,12 @@ async def handle_webhook(request: Request):
                     continue
 
                 # 記事の検索
-                articles = await search_articles(text=text)
+                articles, images = await search_articles(text=text)
 
                 # 要約の取得
                 summaries = await summarize_articles(articles=articles)
 
-                await push_summarized_text(line_id=line_id, articles=articles, summaries=summaries)
+                await push_summarized_text(line_id=line_id, articles=articles, summaries=summaries, images=images)
 
                 # 簡易 subscribe/unsubscribe/status コマンドも保持
                 low = text.lower()

@@ -14,7 +14,7 @@ client = genai.Client(
 # 記事ごと要約用テンプレート
 # =================================================
 SUMMARY_TEMPLATE = """
-あなたはプロのニュース要約ツールです。以下のフォーマット以外の表現は一切不要です。
+あなたはプロのニュース要約ツールです。以下のフォーマットで{language}要約しなでください。
 
 【タイトル】
 {title}
@@ -36,7 +36,7 @@ async def summarize_one_article(title: str, body: str, max_tokens: int = 200) ->
     """
     1記事分の要約を Gemini に問い合わせて返す
     """
-    prompt = SUMMARY_TEMPLATE.format(title=title, body=body)
+    prompt = SUMMARY_TEMPLATE.format(title=title, body=body, language="日本語")
     cfg = types.GenerateContentConfig(
         max_output_tokens=max_tokens,
         temperature=0.0,
@@ -47,7 +47,6 @@ async def summarize_one_article(title: str, body: str, max_tokens: int = 200) ->
         config=cfg,
     )
     return resp.text.strip()
-
 
 async def summarize_articles(articles: List[dict]) -> List[str]:
     """

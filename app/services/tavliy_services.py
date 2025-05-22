@@ -9,7 +9,11 @@ async def search_articles(
 ):
     response = await client.search(
         query=text,
+        topic="news",
+        days=4,
         limit=1,
+        include_images = True,
+
     )
-    print(f"[DEBUG] Tavily raw response:\n{response}\n\n")
-    return response.get("results", [])
+    
+    return response.get("results", []), response.get("images", [])
