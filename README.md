@@ -12,8 +12,9 @@
 ## 📱 機能一覧
 
 * 🔍 **パーソナライズされたニュース配信** - ユーザーの興味に合わせた情報を厳選
-* 📝 **リアルタイム要約** - 長い記事もAIが素早く要約
+* 📝 **リアルタイム要約** - 長い記事もGoogle Gemini AIが素早く要約
 * ⏰ **定期配信** - 毎朝の情報収集をサポート
+* 🔎 **キーワード検索** - 特定のトピックに関する最新ニュースを検索
 
 ---
 
@@ -28,11 +29,19 @@
 ### 🎮 基本的な操作
 
 #### 🏷️ トピック設定
-リッチメニューから「トピック設定」を選択し、興味のあるニュースカテゴリーを選びます。複数選択可能です。
+リッチメニューから「トピック設定」を選択し、興味のあるニュースカテゴリーを選びます。以下のカテゴリーから選択できます：
+- ビジネス
+- エンタメ
+- 一般
+- 健康
+- 科学
+- スポーツ
+- テクノロジー
 
 #### 📋 ニュース要約の取得
 1. LINE Botにキーワードや話題を送信すると、関連するニュースを自動的に検索し要約を返信します
 2. 返信される要約には、タイトル・要約・URL・発信元・発信日時が含まれます
+3. 画像付きの記事では、視覚的な情報も一緒に表示されます
 
 #### 📬 購読設定
 以下のコマンドをメッセージとして送信することで、定期配信の設定を変更できます：
@@ -42,7 +51,7 @@
 
 ### ⏱️ 定期配信
 
-購読設定をONにしている場合、毎朝9時に設定したトピックに基づいた最新ニュースの要約が自動的に配信されます。
+購読設定をONにしている場合、毎朝9時に設定したトピックに基づいた最新ニュースの要約が自動的に配信されます。APSchedulerによって管理されており、東京時間（Asia/Tokyo）で動作します。
 
 ---
 
@@ -51,10 +60,13 @@
 | カテゴリ | 技術 |
 |---------|------|
 | バックエンド | Python 3.x, FastAPI |
-| データベース | PostgreSQL, SQLAlchemy |
+| データベース | PostgreSQL, SQLAlchemy, asyncpg |
 | メッセージング | LINE Bot SDK |
-| AI & 自然言語処理 | Google Generative AI |
+| AI & 自然言語処理 | Google Gemini AI (gemini-2.0-flash-001) |
 | スケジューリング | APScheduler |
+| テキスト解析 | Janome, Gensim |
+| 検索 | Tavily API |
+| コンテナ化 | Docker, Docker Compose |
 
 詳細は `requirements.web.txt` をご参照ください。
 
@@ -68,6 +80,7 @@
 - PostgreSQLデータベースへのアクセス
 - LINE Developersアカウントと設定済みのMessaging APIチャネル
 - Google AI Studioのアクセスキー
+- （オプション）Tavily APIキー（検索機能用）
 
 ### 📥 インストール
 
@@ -94,14 +107,24 @@
    LINE_CHANNEL_ACCESS_TOKEN=your_channel_access_token
    
    # Google AI API設定
-   GOOGLE_API_KEY=your_google_api_key
+   GEMINI_API_KEY=your_google_api_key
+   
+   # LIFF設定
+   LIFF_ID_CATEGORY=your_category_liff_id
+   LIFF_ID_DETAIL=your_detail_liff_id
+   LIFF_ID_REGULAR=your_regular_liff_id
    
    # アプリケーション設定
    APP_ENV=development  # development または production
    LOG_LEVEL=INFO
    ```
 
-2. データベースのマイグレーション
+2. LIFF HTMLファイルのビルド
+   ```bash
+   python -m app.build_html
+   ```
+
+3. データベースのマイグレーション
    ```bash
    alembic upgrade head
    ```
@@ -153,6 +176,35 @@ LINE Developersコンソールで以下のWebhook URLを設定してください
 
 2. AWS ECSを使用したデプロイ
    - `deploy/ecs`ディレクトリ内のCloudFormationテンプレートを使用
+
+---
+
+## 🖥️ アプリケーション構造
+
+```
+Linebot/
+├── app/                     # メインアプリケーションコード
+│   ├── controllers/         # LINEメッセージハンドラー
+│   ├── crud/                # データベース操作
+│   ├── models/              # SQLAlchemyモデル
+│   ├── routers/             # FastAPIルーター
+│   ├── schemas/             # Pydanticスキーマ
+│   ├── services/            # ビジネスロジック
+│   │   ├── gemini_service.py  # Google Gemini AIとの連携
+│   │   ├── line_service.py    # LINE Messaging API連携
+│   │   └── topic_menu_service.py  # トピック設定メニュー
+│   ├── static/              # 静的ファイル
+│   │   └── liff/            # LINE Frontend Framework
+│   ├── build_html.py        # LIFF HTMLビルドスクリプト
+│   ├── config.py            # 設定管理
+│   ├── database.py          # DB接続管理
+│   ├── main.py              # アプリケーションエントリーポイント
+│   └── scheduler.py         # 定期実行スケジューラー
+├── .env                     # 環境変数（gitignore対象）
+├── docker-compose.yml       # Docker Compose設定
+├── Dockerfile.web           # Webアプリ用Dockerfile
+└── requirements.web.txt     # 依存パッケージ
+```
 
 ---
 
