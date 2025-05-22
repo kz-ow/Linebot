@@ -112,39 +112,27 @@ async def get_line_user_id(
 # =================================================
 # 5. Flex Messageの作成
 # =================================================
-def build_flex_for_article(art: dict) -> BubbleContainer:
-    """
-    art に title,url,image_url,published_at,summary,points が含まれる想定
-    """
-    # ポイントを BoxComponent の中に TextComponent で並べる
-    point_components = [TextComponent(text=p, size="xs", wrap=True, margin="xs") for p in art["points"]]
-
+def build_flex_for_article(art: dict, summary: str) -> BubbleContainer:
     return BubbleContainer(
         direction='ltr',
-        # hero=ImageComponent(
-        #     url=art.get("image_url") or "https://example.com/placeholder.png",
-        #     size='full', aspectRatio='20:13', aspectMode='cover'
-        # ),
         body=BoxComponent(
-            layout='vertical', spacing='sm',
+            layout='vertical',
+            spacing='md',
             contents=[
-                TextComponent(text=art["title"], weight='bold', size='lg', wrap=True),
+                TextComponent(text=art["title"], weight='bold', size='xl', wrap=True),
                 TextComponent(text=f"🕒 {art.get('published_at')}", size='xs', color='#999999'),
-                # 要約
-                TextComponent(text=art["summary"], wrap=True, margin="md"),
-                # 要点ヘッダ
-                TextComponent(text="🔑 要点", weight='bold', size='sm', margin="md"),
-                # 箇条書き
-                *point_components,
+                TextComponent(text=summary, wrap=True, margin='md'),
             ]
         ),
         footer=BoxComponent(
             layout='vertical',
             contents=[
                 ButtonComponent(
-                    style='link', height='sm',
+                    style='link',
+                    height='sm',
                     action=URIAction(label='▶️ 詳細を見る', uri=art["url"])
                 )
             ]
         )
     )
+

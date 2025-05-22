@@ -23,6 +23,15 @@ SUMMARY_TEMPLATE = """
 {body}
 """
 
+
+# 要点抽出テンプレート
+_POINTS_TPL = """
+以下の要約文から、重要な「要点」を３つまで、日本語の箇条書きで出力してください。
+出力は「・」で始まるリストのみとしてください。
+
+{summary}
+"""
+
 async def summarize_one_article(title: str, body: str, max_tokens: int = 200) -> str:
     """
     1記事分の要約を Gemini に問い合わせて返す
@@ -45,8 +54,7 @@ async def summarize_articles(articles: List[dict]) -> List[str]:
     複数記事を並列で要約
     """
     tasks = []
-    print("[DEBAG] Gemini raw response[0]: ", articles)
-    for art in articles:
+    for art in articles[:3]:
         # 説明文が空なら本文(raw_content)を使う
         body = art.get("content") or art.get("description", "")
         tasks.append(summarize_one_article(art["title"], body))
