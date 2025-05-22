@@ -2,8 +2,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import async_session
-from app.crud.user import set_categories
-from app.schemas.category_payload import CategoryPayload
+from app.crud.user import set_scheduler, set_language, set_mode
+from app.schemas.scheduler_payload import SchedulerPayload
+from app.schemas.mode_payload import ModePayload
+from app.schemas.language_payload import LanguagePayload
 from app.services.line_service import get_line_user_id
 
 router = APIRouter()
@@ -12,40 +14,26 @@ async def get_db() -> AsyncSession:
     async with async_session() as session:
         yield session
 
-from fastapi import Request
-@router.post("/category/")
-async def post_category(
-    request: Request,
-    payload: CategoryPayload,                     
+@router.post("/mode")
+async def post_mode(
+    payload: ModePayload,                     
     user_id: Annotated[str, Depends(get_line_user_id)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):      
-    raw = await request.body()
-    print("🔍 Raw request body:", raw.decode("utf-8"))
-    # JSON デコード版も
-    try:
-        j = await request.json()
-        print("🔍 Parsed JSON:", j)
-    except Exception:
-        print("⚠️ JSON parsing failed")
-    await set_categories(db, user_id, payload.topic)
+    await set_mode(db, user_id, payload.mode)
 
-
-
-@router.post("/detail")
-async def post_detail(
-    payload: CategoryPayload,
+@router.post("/language")
+async def post_language(
+    payload: LanguagePayload,
     user_id: Annotated[str, Depends(get_line_user_id)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    await set_categories(db, user_id, payload.topics)
+    await set_language(db, user_id, payload.language)
 
-@router.post("/regular")
-async def post_regular(
-
+@router.post("/scheduler")
+async def post_scheduler(
+    payload: SchedulerPayload,
+    user_id: Annotated[str, Depends(get_line_user_id)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    pass
-
-@router.post("/")
-async def test():
-    return {"message": "Hello, World!"}
+    await set_scheduler(db, user_id, payload.schedules)

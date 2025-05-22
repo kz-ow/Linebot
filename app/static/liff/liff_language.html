@@ -45,64 +45,71 @@
   <div class="w-full max-w-md bg-white rounded-xl shadow p-6">
     <h1 class="text-lg font-bold mb-5 text-center">興味のあるトピックを選択</h1>
 
-    <form id="topicForm" class="grid gap-3 select-none">
+    <form id="langForm" class="grid gap-3 select-none">
       <!-- テンプレ：for属性を id と合わせるだけで量産可 -->
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>ビジネス</span>
+        <span>日本語</span>
         <label class="switch">
-          <input id="radio-business" type="radio" name="topic" value="business" />
+          <input id="radio-ja" type="radio" name="lang" value="日本語" />
           <span class="slider"></span>
         </label>
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>エンタメ</span>
+        <span>英語</span>
         <label class="switch">
-          <input id="radio-entertainment" type="radio" name="topic" value="entertainment" />
+          <input id="radio-en" type="radio" name="lang" value="英語" />
           <span class="slider"></span>
         </label>
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>一般</span>
+        <span>フランス語</span>
         <label class="switch">
-          <input id="radio-general" type="radio" name="topic" value="general" />
+          <input id="radio-fr" type="radio" name="lang" value="フランス語" />
           <span class="slider"></span>
         </label>
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>健康</span>
+        <span>ドイツ語</span>
         <label class="switch">
-          <input id="radio-health" type="radio" name="topic" value="health" />
+          <input id="radio-de" type="radio" name="lang" value="ドイツ語" />
           <span class="slider"></span>
         </label>
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>科学</span>
+        <span>スペイン語</span>
         <label class="switch">
-          <input id="radio-science" type="radio" name="topic" value="science" />
+          <input id="radio-es" type="radio" name="lang" value="スペイン語" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      
+      <div class="flex items-center justify-between p-3 rounded-lg border">
+        <span>"韓国語"</span>
+        <label class="switch">
+          <input id="radio-ko" type="radio" name="lang" value="韓国語" />
           <span class="slider"></span>
         </label>
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>スポーツ</span>
+        <span>"中国語"</span>
         <label class="switch">
-          <input id="radio-sports" type="radio" name="topic" value="sports" />
+          <input id="radio-zh" type="radio" name="lang" value="中国語" />
           <span class="slider"></span>
         </label>
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>テクノロジー</span>
+        <span>"ロシア語"</span>
         <label class="switch">
-          <input id="radio-technology" type="radio" name="topic" value="technology" />
+          <input id="radio-ru" type="radio" name="lang" value="ロシア語" />
           <span class="slider"></span>
         </label>
       </div>
-    </form>
 
     <button id="sendButton"
             type="button"
@@ -117,7 +124,7 @@
 /* ===== 環境設定 ===== */
 const LIFF_ID       = "2007363432-ngL46PL1" 
 // const POST_ENDPOINT = "/app/register/category/";
-const POST_ENDPOINT = "/register/category/"; // 相対 or 絶対 URL
+const POST_ENDPOINT = "/register/language"; 
 /* ================== */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -130,16 +137,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     idToken = liff.getIDToken() || null;  // ← 再代入
   }
 
-  const radios  = document.querySelectorAll('input[name="topic"]');
+  const radios  = document.querySelectorAll('input[name="lang"]');
   const sendBtn = document.getElementById('sendButton');
 
   // ラジオは排他的なので、選択有無だけ判定
   radios.forEach(r => r.addEventListener('change', () => {
-    sendBtn.disabled = !document.querySelector('input[name="topic"]:checked');
+    sendBtn.disabled = !document.querySelector('input[name="lang"]:checked');
   }));
 
   sendBtn.addEventListener('click', async () => {
-    const chosen = document.querySelector('input[name="topic"]:checked')?.value;
+    const chosen = document.querySelector('input[name="lang"]:checked')?.value;
     if (!chosen) return;
     const headers = { 'Content-Type': 'application/json' };
     if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
@@ -148,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const res = await fetch(POST_ENDPOINT, {
             method : 'POST',
             headers: headers,
-            body   : JSON.stringify({ topic: [chosen] })
+            body   : JSON.stringify({ lang: [chosen] })
           });
 
           if (!res.ok) throw new Error('server ' + res.status);
@@ -159,7 +166,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           statusMsg.classList.remove('hidden');
 
           if (insideLiff) {
-            setTimeout(() => liff.closeWindow(), 1000); // 1 秒後に自動クローズ
+            await liff.closeWindow();
+          } else {
+            alert('送信しました！');
           }
         } catch (err) {
           console.error('POST failed:', err);

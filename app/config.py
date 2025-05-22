@@ -1,5 +1,6 @@
 # app/config.py
 from pydantic_settings import BaseSettings
+from typing import List
 
 class Settings(BaseSettings):
     LINE_CHANNEL_SECRET: str
@@ -13,16 +14,16 @@ class Settings(BaseSettings):
     LIFF_ID_REGULAR: str
     LIFF_ID_CATEGORY: str
     TAVILY_API_KEY: str
-    
 
-    TOPICS: tuple[tuple[str, str], ...] = (
-        ("business",      "ビジネス"),
-        ("entertainment", "エンタメ"),
-        ("general",       "一般"),
-        ("health",        "健康"),
-        ("science",       "科学"),
-        ("sports",        "スポーツ"),
-        ("technology",    "テクノロジー"),
+    LANGUAGES: List[str] = (
+        "日本語",
+        "英語",
+        "フランス語",
+        "ドイツ語",
+        "スペイン語",
+        "韓国語",
+        "中国語",
+        "ロシア語"
     )
 
     class Config:

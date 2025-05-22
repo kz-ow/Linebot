@@ -6,7 +6,6 @@ from app.database import async_session
 from app.crud.user import (
     set_subscription,
     get_subscription,
-    get_enabled_category,
 )
 from app.services.tavliy_services import search_articles
 from app.services.line_service import (
@@ -103,17 +102,6 @@ async def handle_webhook(request: Request):
                 and line_id and token
             ):
                 text = event["message"]["text"].strip()
-
-                # 選択済みトピック取得（LIFF 側で保存されたもの）
-                categories = await get_enabled_category(db, line_id)
-                print(f"[INFO] User {line_id} category: {categories}")
-                if not categories:
-                    await reply_text_message(
-                        token,
-                        "トピックが設定されていません。\n"
-                        "リッチメニューから『トピック設定』を開いてください。"
-                    )
-                    continue
 
                 # 記事の検索
                 articles, images = await search_articles(text=text)

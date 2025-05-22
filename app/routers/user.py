@@ -7,7 +7,6 @@ from app.crud.user import (
     set_subscription,
     get_subscription,
 )
-from app.services.topic_menu_service import send_topic_toggle_flex
 from app.database import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])

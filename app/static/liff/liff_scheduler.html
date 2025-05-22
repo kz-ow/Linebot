@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store">
-  <title>定期更新の設定</title>
+  <title>定期更新・ドメインの設定</title>
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -44,8 +44,9 @@
     <h1 class="text-lg font-bold mb-5 text-center">定期更新の設定</h1>
 
     <form id="topicForm" class="grid gap-3 select-none">
+      <!-- 定期更新 ON/OFF -->
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span id="lbl-on">定期更新を有効にする</span>
+        <span>定期更新を有効にする</span>
         <label class="switch" for="radio-on">
           <input id="radio-on" type="radio" name="scheduler" value="ON" />
           <span class="slider"></span>
@@ -53,17 +54,23 @@
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span id="lbl-off">定期更新を無効にする</span>
+        <span>定期更新を無効にする</span>
         <label class="switch" for="radio-off">
           <input id="radio-off" type="radio" name="scheduler" value="OFF" />
           <span class="slider"></span>
         </label>
       </div>
-    </form> <!-- ← 閉じ忘れを追加 -->
+
+      <!-- 通知先 URL 入力フォーム (ON 選択時に表示) -->
+      <div id="urlInputContainer" class="flex items-center justify-between p-3 rounded-lg border hidden">
+        <label for="endpointUrl" class="text-sm text-gray-700">通知先 URL（https://から始まる）</label>
+        <input id="endpointUrl" type="url" name="endpointUrl" placeholder="https://example.com/api/register"
+               class="ml-2 p-2 border rounded w-full" />
+      </div>
+    </form>
 
     <button id="sendButton"
-            class="mt-6 w-full py-2 rounded-md text-white bg-blue-600
-                   disabled:bg-gray-400 transition-colors"
+            class="mt-6 w-full py-2 rounded-md text-white bg-blue-600 disabled:bg-gray-400 transition-colors"
             disabled>
       送　信
     </button>
@@ -72,7 +79,7 @@
   <script type="module">
 /* ===== 環境設定 ===== */
 const LIFF_ID       = "2007363432-qok1nLkv";      // build 時に置換
-const POST_ENDPOINT = "api/register/regular/";    // 相対 or 絶対 URL
+const POST_ENDPOINT = "/register/scheduler/";    // 相対 or 絶対 URL
 /* ================== */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -85,34 +92,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     idToken = liff.getIDToken();
   }
 
-  const radios  = document.querySelectorAll('input[name="scheduler"]');
+  const radios = document.querySelectorAll('input[name="scheduler"]');
+  const urlInputContainer = document.getElementById('urlInputContainer');
+  const urlInput = document.getElementById('endpointUrl');
   const sendBtn = document.getElementById('sendButton');
 
-  // ラジオ選択でボタン活性化
-  radios.forEach(r => r.addEventListener('change', () => {
-    sendBtn.disabled = !document.querySelector('input[name="scheduler"]:checked');
+  // ボタン活性化判定関数
+  function updateSendBtnState() {
+    const chosen = document.querySelector('input[name="scheduler"]:checked')?.value;
+    if (chosen === 'OFF') {
+      sendBtn.disabled = false;
+    } else if (chosen === 'ON') {
+      const url = urlInput.value.trim();
+      // https:// で始まるもののみ有効
+      sendBtn.disabled = !(url && url.startsWith('https://'));
+    } else {
+      sendBtn.disabled = true;
+    }
+  }
+
+  // 初期状態チェック
+  updateSendBtnState();
+
+  // ラジオ選択時の挙動
+  radios.forEach(radio => radio.addEventListener('change', () => {
+    if (radio.value === 'ON' && radio.checked) {
+      urlInputContainer.classList.remove('hidden');
+    } else if (radio.value === 'OFF' && radio.checked) {
+      urlInputContainer.classList.add('hidden');
+    }
+    updateSendBtnState();
   }));
 
+  // URL入力時にもボタン状態を更新
+  urlInput.addEventListener('input', updateSendBtnState);
+
+  // 送信処理
   sendBtn.addEventListener('click', async () => {
     const chosen = document.querySelector('input[name="scheduler"]:checked')?.value;
-    if (!chosen) return;       // 念のため
+    if (!chosen) return;
 
     const headers = { 'Content-Type': 'application/json' };
     if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
 
+    const payload = { scheduler: chosen };
+    if (chosen === 'ON') payload.endpointUrl = urlInput.value.trim();
+
     try {
-      console.log(POST_ENDPOINT)
       const res = await fetch(POST_ENDPOINT, {
         method : 'POST',
         headers: headers,
-        body   : JSON.stringify({ scheduler: chosen }) // ← payload を scheduler 用に
+        body   : JSON.stringify(payload)
       });
       if (!res.ok) throw new Error('server ' + res.status);
 
       if (insideLiff) {
         await liff.closeWindow();
       } else {
-        alert('送信しました！（プレビュー）');
+        alert('送信しました！');
       }
     } catch (err) {
       console.error(err);
