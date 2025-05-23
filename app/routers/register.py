@@ -28,6 +28,7 @@ async def post_language(
     user_id: Annotated[str, Depends(get_line_user_id)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
+    print(f"[INFO] payload.language: {payload.language}")
     await set_language(db, user_id, payload.language)
 
 @router.post("/scheduler")
@@ -36,4 +37,4 @@ async def post_scheduler(
     user_id: Annotated[str, Depends(get_line_user_id)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    await set_scheduler(db, user_id, payload.schedules)
+    await set_scheduler(db, user_id, payload.scheduler, payload.endpointUrl)

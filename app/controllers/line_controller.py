@@ -42,8 +42,6 @@ async def handle_webhook(request: Request):
     if not events:
         return {"status": "OK"}
 
-    print(f"[INFO] payload: {payload}")
-
     async with async_session() as db:
         for event in events:
             ev_type = event.get("type")
@@ -62,8 +60,10 @@ async def handle_webhook(request: Request):
                 continue
 
             # ──────────── unfollow ───────────
+            # ユーザーが友達解除した場合，データベースから削除する
             if ev_type == "unfollow" and line_id:
                 await set_subscription(db, line_id, False)
+                
                 continue
 
             # ──────────── postback ───────────
@@ -102,6 +102,14 @@ async def handle_webhook(request: Request):
                 and line_id and token
             ):
                 text = event["message"]["text"].strip()
+                
+                # ユーザーのline_idからユーザー情報を取得
+                try:
+                    user = await get_or_create_user(db, line_id)
+
+                if not user:
+                    await reply_text_message(token, "ユーザー情報が見つかりません。")
+                    continue
 
                 # 記事の検索
                 articles, images = await search_articles(text=text)

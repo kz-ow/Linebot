@@ -104,9 +104,13 @@ async def get_line_user_id(
     FastAPI の Depends に使う例。
     Authorization: Bearer <IDトークン> から、検証済みの sub（ユーザーID）を返す。
     """
+    print("")
+    print("[DEBUG] id_token:", authorization)
+    print("")
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing authorization header")
     id_token = authorization.split(" ", 1)[1]
+
     claims = await verify_id_token(id_token)
     return claims["sub"]
 

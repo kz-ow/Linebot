@@ -28,6 +28,8 @@ async def startup_event():
     アプリケーション起動時にデータベースの初期化を行います。
     """
     try:
+        import app.models.user
+        
         await init_models()
         print("データベースの初期化に成功しました。")
     except Exception as e:

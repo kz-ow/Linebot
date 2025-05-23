@@ -1,7 +1,7 @@
 # app.create_tabels.py
 import asyncio
 from app.database import engine
-from app.models import Base
+from app.models.base import Base
 
 async def init_models():
     async with engine.begin() as conn:

@@ -1,6 +1,7 @@
 # app/database.py
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import text
 from app.config import settings
 from app.models.base import Base
 
@@ -13,8 +14,6 @@ async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False
 # FastAPIの依存関係として利用するDBセッションジェネレータ
 async def init_models():
     import app.models.user
-    import app.models.topic
-    import app.models.user_topic
     async with engine.begin() as conn:
         # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)

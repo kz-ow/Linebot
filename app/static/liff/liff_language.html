@@ -161,10 +161,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (!res.ok) throw new Error('server ' + res.status);
           console.log('POST success');
 
-          /* 成功メッセージを表示 */
-          statusMsg.textContent = '完了しました';
-          statusMsg.classList.remove('hidden');
-
           if (insideLiff) {
             await liff.closeWindow();
           } else {

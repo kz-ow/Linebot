@@ -8,7 +8,14 @@ async def get_or_create_user(db: AsyncSession, line_id: str) -> User:
     q = await db.execute(select(User).where(User.line_id == line_id))
     user = q.scalars().first()
     if not user:
-        user = User(line_id=line_id, is_subscribed=True)
+        user = User(
+            line_id=line_id, 
+            is_subscribed=True, 
+            scheduler=False, 
+            endpoint_url=None,
+            language="日本語", 
+            mode="news")
+        
         db.add(user)
         await db.commit()
         await db.refresh(user)
@@ -31,7 +38,6 @@ async def set_language(
     line_id: str,
     language: str,
 ):
-    
     user = await get_or_create_user(db, line_id)
     user.language = language if language else "日本語"
     await db.commit()
@@ -40,14 +46,13 @@ async def set_language(
 async def set_scheduler(
     db: AsyncSession,
     line_id: str,
-    schedules: bool,
+    scheduler: bool,
     endpointUrl: str
 ):
     user = await get_or_create_user(db, line_id)
-    user.schedules = schedules
-    user.endpointUrl = endpointUrl if schedules else None
+    user.scheduler = scheduler
+    user.endpoint_url = endpointUrl if scheduler else None
     await db.commit()
-
 
 async def set_mode(
     db: AsyncSession,
