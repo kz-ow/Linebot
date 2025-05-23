@@ -5,6 +5,7 @@ from starlette.concurrency import run_in_threadpool
 from app.routers import line, news, user, register
 from app.database import init_models
 from app.build_html import build_liff_html
+from app.scheduler import start_scheduler
 
 
 app = FastAPI(
@@ -24,9 +25,6 @@ app.include_router(register.router, prefix="/register",  tags=["Register"])
 
 @app.on_event("startup")
 async def startup_event():
-    """
-    アプリケーション起動時にデータベースの初期化を行います。
-    """
     try:
         import app.models.user
         
@@ -35,13 +33,17 @@ async def startup_event():
     except Exception as e:
         print(f"データベースの初期化に失敗しました: {e}")
 
-    # LIFFのHTMLファイルをビルドします。
     try:
         await run_in_threadpool(build_liff_html)
         print("LIFFのHTMLファイルのビルドに成功しました。")
     except Exception as e:
         print(f"LIFFのHTMLファイルのビルドに失敗しました: {e}")
 
+    try:
+        start_scheduler()
+        print("スケジューラーの初期化に成功しました。")
+    except Exception as e:
+        print(f"スケジューラーの初期化に失敗しました: {e}")
 
 if __name__ == '__main__':
     import uvicorn

@@ -6,6 +6,7 @@ from app.database import async_session
 from app.crud.user import (
     set_subscription,
     get_subscription,
+    get_or_create_user
 )
 from app.services.tavliy_services import search_articles
 from app.services.line_service import (
@@ -104,8 +105,7 @@ async def handle_webhook(request: Request):
                 text = event["message"]["text"].strip()
                 
                 # ユーザーのline_idからユーザー情報を取得
-                try:
-                    user = await get_or_create_user(db, line_id)
+                user = await get_or_create_user(db, line_id)
 
                 if not user:
                     await reply_text_message(token, "ユーザー情報が見つかりません。")
@@ -115,7 +115,7 @@ async def handle_webhook(request: Request):
                 articles, images = await search_articles(text=text)
 
                 # 要約の取得
-                summaries = await summarize_articles(articles=articles)
+                summaries = await summarize_articles(articles=articles, language=user.language)
 
                 await push_summarized_text(line_id=line_id, articles=articles, summaries=summaries, images=images)
 

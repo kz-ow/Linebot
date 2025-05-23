@@ -4,6 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.config import settings
 
+async def get_all_users(db: AsyncSession) -> list[User]:
+    q = await db.execute(select(User).where(User.is_subscribed == True))
+    users = q.scalars().all()
+    return users
+
 async def get_or_create_user(db: AsyncSession, line_id: str) -> User:
     q = await db.execute(select(User).where(User.line_id == line_id))
     user = q.scalars().first()
@@ -62,4 +67,9 @@ async def set_mode(
     user = await get_or_create_user(db, line_id)
     user.mode = mode
     await db.commit()
+
+async def get_old_articles(db, line_id: str) -> list[str]:
+    user = await get_or_create_user(db, line_id)
+    old_articles
+    
 

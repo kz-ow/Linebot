@@ -14,8 +14,8 @@ client = genai.Client(
 # 記事ごと要約用テンプレート
 # =================================================
 SUMMARY_TEMPLATE = """
-あなたはプロのニュース要約ツールです。以下のフォーマットで{language}要約しなでください。
-
+あなたはプロのニュース要約ツールです。以下のフォーマットで{language}で要約してください。
+また，要約は200文字以内に収めてください。
 【タイトル】
 {title}
 
@@ -23,20 +23,8 @@ SUMMARY_TEMPLATE = """
 {body}
 """
 
-
-# 要点抽出テンプレート
-_POINTS_TPL = """
-以下の要約文から、重要な「要点」を３つまで、日本語の箇条書きで出力してください。
-出力は「・」で始まるリストのみとしてください。
-
-{summary}
-"""
-
-async def summarize_one_article(title: str, body: str, max_tokens: int = 200) -> str:
-    """
-    1記事分の要約を Gemini に問い合わせて返す
-    """
-    prompt = SUMMARY_TEMPLATE.format(title=title, body=body, language="日本語")
+async def summarize_one_article(title: str, body: str, max_tokens: int = 300, language: str ="日本語") -> str:
+    prompt = SUMMARY_TEMPLATE.format(title=title, body=body, language=language)
     cfg = types.GenerateContentConfig(
         max_output_tokens=max_tokens,
         temperature=0.0,
@@ -48,7 +36,7 @@ async def summarize_one_article(title: str, body: str, max_tokens: int = 200) ->
     )
     return resp.text.strip()
 
-async def summarize_articles(articles: List[dict]) -> List[str]:
+async def summarize_articles(articles: List[dict], language: str) -> List[str]:
     """
     複数記事を並列で要約
     """
@@ -56,5 +44,15 @@ async def summarize_articles(articles: List[dict]) -> List[str]:
     for art in articles[:3]:
         # 説明文が空なら本文(raw_content)を使う
         body = art.get("content") or art.get("description", "")
-        tasks.append(summarize_one_article(art["title"], body))
+        tasks.append(summarize_one_article(art["title"], body, language=language))
     return await asyncio.gather(*tasks)
+
+
+async def summarize_articles_diffs(articles_diffs: List[dict], language: str) -> List[str]:
+    """
+    Tavily Extractで取得した記事の差分を要約
+    """
+
+    
+
+    

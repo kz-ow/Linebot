@@ -55,8 +55,6 @@ async def push_image_message(user_id: str, image_url: str):
 # 3. 要約
 # =================================================
 async def push_summarized_text(line_id: str, articles: str, summaries: str, images: List[str]):
-    print("images[0]:", images[0])
-
     bubbles = [build_flex_for_article(a, s, i) for a, s, i in zip(articles, summaries, images)]
     print("bubbles[0]:", bubbles[0])
     carousel = CarouselContainer(contents=bubbles)
