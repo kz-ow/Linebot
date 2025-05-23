@@ -20,6 +20,8 @@ async def post_mode(
     user_id: Annotated[str, Depends(get_line_user_id)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):      
+    print(f"[INFO] payload.mode: {payload.mode}")
+    print(f"[INFO] user_id: {user_id}")
     await set_mode(db, user_id, payload.mode)
 
 @router.post("/language")

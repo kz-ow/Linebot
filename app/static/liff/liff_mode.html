@@ -43,11 +43,11 @@
   <div class="w-full max-w-md bg-white rounded-xl shadow p-6">
     <h1 class="text-lg font-bold mb-5 text-center">ニュース/一般</h1>
 
-    <form id="topicForm" class="grid gap-3 select-none">
+    <form id="modeForm" class="grid gap-3 select-none">
       <!-- 定期更新 ON/OFF -->
       <div class="flex items-center justify-between p-3 rounded-lg border">
         <span>ニュース</span>
-        <label class="switch" for="radio-on">
+        <label class="switch">
           <input id="radio-on" type="radio" name="mode" value="news" />
           <span class="slider"></span>
         </label>
@@ -55,7 +55,7 @@
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
         <span>一般</span>
-        <label class="switch" for="radio-off">
+        <label class="switch">
           <input id="radio-off" type="radio" name="mode" value="general" />
           <span class="slider"></span>
         </label>
@@ -63,15 +63,17 @@
     </form>
 
     <button id="sendButton"
-            class="mt-6 w-full py-2 rounded-md text-white bg-blue-600 disabled:bg-gray-400 transition-colors"
+            type="button"
+            class="mt-6 w-full py-2 rounded-md text-white bg-blue-600
+                   disabled:bg-gray-400 transition-colors"
             disabled>
       送　信
     </button>
   </div>
 
-  <script type="module">
+  <script>
 /* ===== 環境設定 ===== */
-const LIFF_ID       = "2007363432-qok1nLkv";      // build 時に置換
+const LIFF_ID       = "2007363432-VoWb7qW0";      // build 時に置換
 const POST_ENDPOINT = "/register/mode";    // 相対 or 絶対 URL
 /* ================== */
 
@@ -82,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (insideLiff) {
     await liff.init({ liffId: LIFF_ID });
     await liff.ready;
-    idToken = liff.getIDToken();
+    idToken = liff.getIDToken() || null;
   }
 
   const radios = document.querySelectorAll('input[name="mode"]');
@@ -105,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await fetch(POST_ENDPOINT, {
         method : 'POST',
         headers: headers,
-        body   : JSON.stringify(payload)
+        body   : JSON.stringify({ mode: chosen })
       });
       if (!res.ok) throw new Error('server ' + res.status);
 

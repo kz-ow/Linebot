@@ -1,6 +1,5 @@
 # app/schemas/scheduler_payload.py
 from pydantic import BaseModel, validator
-from app.config import settings  # enum または定数集合
 
 class SchedulerPayload(BaseModel):
     scheduler: bool

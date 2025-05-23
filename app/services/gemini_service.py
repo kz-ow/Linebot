@@ -29,12 +29,14 @@ async def summarize_one_article(title: str, body: str, max_tokens: int = 300, la
         max_output_tokens=max_tokens,
         temperature=0.0,
     )
+
     resp = client.models.generate_content(
         model="gemini-2.0-flash-001",
         contents=prompt,
         config=cfg,
     )
     return resp.text.strip()
+
 
 async def summarize_articles(articles: List[dict], language: str) -> List[str]:
     """
@@ -53,6 +55,6 @@ async def summarize_articles_diffs(articles_diffs: List[dict], language: str) ->
     Tavily Extractで取得した記事の差分を要約
     """
 
-    
+
 
     

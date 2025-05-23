@@ -5,7 +5,6 @@ from app.crud.user import get_all_users
 from app.services.tavliy_services import serach_articles_for_scheduler
 from app.services.gemini_service import summarize_articles
 from app.services.line_service import push_summarized_text
-from app.services
 
 # 日本（東京）向けタイムゾーンを指定したい場合
 scheduler = AsyncIOScheduler(timezone="Asia/Tokyo")
@@ -40,8 +39,8 @@ async def scheduled_personalized_news_summary():
 
             # --- 差分を保存 ---
 
-        # --- プッシュ送信 ---
-        await push_summarized_text(line_id=user.line_id, articles=articles, summaries=summaries, images=images)
+        # # --- プッシュ送信 ---
+        # await push_summarized_text(line_id=user.line_id, articles=articles, summaries=summaries, images=images)
 
 def diff_articles(old, new):
     diff = []

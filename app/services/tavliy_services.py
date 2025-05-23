@@ -7,14 +7,15 @@ client =  AsyncTavilyClient(api_key=settings.TAVILY_API_KEY)
 # LINE BOTからのリクエストを処理
 async def search_articles(
   text:str,
-  mode: str = "news",
+  mode: str
 ):
     if not text and text == "":
         raise ValueError("text must be provided")
     
+    print("user mode: ", mode)
     response = await client.search(
         query=text,
-        topic=mode,
+        topic="general",
         days=4,
         limit=1,
         include_images = True,

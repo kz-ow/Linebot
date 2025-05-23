@@ -112,7 +112,8 @@ async def handle_webhook(request: Request):
                     continue
 
                 # 記事の検索
-                articles, images = await search_articles(text=text)
+                print(f"[INFO] user.mode: {user.mode}")
+                articles, images = await search_articles(text=text, mode=user.mode)
 
                 # 要約の取得
                 summaries = await summarize_articles(articles=articles, language=user.language)
