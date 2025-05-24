@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     LIFF_ID_DETAIL: str
     LIFF_ID_REGULAR: str
     LIFF_ID_CATEGORY: str
+    LIFF_CHANNEL_ID: str
     TAVILY_API_KEY: str
 
     LANGUAGES: List[str] = (

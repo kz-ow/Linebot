@@ -23,8 +23,31 @@ SUMMARY_TEMPLATE = """
 {body}
 """
 
+SUMMARY_TEMPLATE_DIFF = """
+あなたはプロのニュース要約ツールです。以下のフォーマットで{language}で要約してください。
+また，要約は200文字以内に収め，タイトルは20字以内で収めてください。
+【タイトル】
+
+ [要約]
+{body}
+"""
+
 async def summarize_one_article(title: str, body: str, max_tokens: int = 300, language: str ="日本語") -> str:
     prompt = SUMMARY_TEMPLATE.format(title=title, body=body, language=language)
+    cfg = types.GenerateContentConfig(
+        max_output_tokens=max_tokens,
+        temperature=0.0,
+    )
+
+    resp = client.models.generate_content(
+        model="gemini-2.0-flash-001",
+        contents=prompt,
+        config=cfg,
+    )
+    return resp.text.strip()
+
+async def summarize_one_diff(body: str, max_tokens: int = 300, language: str ="日本語") -> str:
+    prompt = SUMMARY_TEMPLATE_DIFF.format(body=body, language=language)
     cfg = types.GenerateContentConfig(
         max_output_tokens=max_tokens,
         temperature=0.0,
@@ -54,6 +77,14 @@ async def summarize_articles_diffs(articles_diffs: List[dict], language: str) ->
     """
     Tavily Extractで取得した記事の差分を要約
     """
+
+    tasks = []
+    for diff in articles_diffs[:3]:
+        # 説明文が空なら本文(raw_content)を使う
+        body = diff
+        tasks.append(summarize_one_diff(body, language=language))
+    return await asyncio.gather(*tasks)
+
 
 
 

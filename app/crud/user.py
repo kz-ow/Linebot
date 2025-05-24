@@ -1,13 +1,21 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from app.models.user import User
-from app.config import settings
+from app.models.watched_page import WatchedPage
+from app.services.tavliy_services import serach_articles_for_scheduler
+import hashlib
+from datetime import datetime
 
-async def get_all_users(db: AsyncSession) -> list[User]:
-    q = await db.execute(select(User).where(User.is_subscribed == True))
-    users = q.scalars().all()
-    return users
+async def get_all_users(session: AsyncSession) -> list[User]:
+    result = await session.execute(
+        select(User)
+        .options(
+            selectinload(User.watched_pages)  # ← ここで watched_pages を一括ロード
+        )
+    )
+    return result.scalars().all()
 
 async def get_or_create_user(db: AsyncSession, line_id: str) -> User:
     q = await db.execute(select(User).where(User.line_id == line_id))
@@ -19,7 +27,7 @@ async def get_or_create_user(db: AsyncSession, line_id: str) -> User:
             scheduler=False, 
             endpoint_url=None,
             language="日本語", 
-            mode="news")
+            mode="general")
         
         db.add(user)
         await db.commit()
@@ -57,6 +65,23 @@ async def set_scheduler(
     user = await get_or_create_user(db, line_id)
     user.scheduler = scheduler
     user.endpoint_url = endpointUrl if scheduler else None
+
+    if user.scheduler and user.endpoint_url:
+        # 初回記事を取得
+        article = await serach_articles_for_scheduler(
+            endpoint_url=user.endpoint_url,
+        )
+        raw_content = article[0]["raw_content"]
+        time_now = func.now()
+
+        # 取得した記事を watched_page に保存
+        watched_page = WatchedPage(
+            user_id=user.line_id,
+            url = user.endpoint_url,
+            last_content=raw_content,
+            last_checked=time_now,
+        )
+        db.add(watched_page)
     await db.commit()
 
 async def set_mode(
@@ -67,9 +92,5 @@ async def set_mode(
     user = await get_or_create_user(db, line_id)
     user.mode = mode
     await db.commit()
-
-async def get_old_articles(db, line_id: str) -> list[str]:
-    user = await get_or_create_user(db, line_id)
-    old_articles
     
 

@@ -117,7 +117,9 @@ async def handle_webhook(request: Request):
 
                 # 要約の取得
                 summaries = await summarize_articles(articles=articles, language=user.language)
-
+                
+                print(f"[INFO] line_id in contloer: {line_id}")
+                print(f"[INFO] line_id in DB: {user.line_id}")
                 await push_summarized_text(line_id=line_id, articles=articles, summaries=summaries, images=images)
 
                 # 簡易 subscribe/unsubscribe/status コマンドも保持

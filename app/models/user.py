@@ -12,7 +12,7 @@ class User(Base):
     scheduler = Column(Boolean, nullable=False, default=False)
     endpoint_url = Column(String, nullable=True, default=None)
     language = Column(String, nullable=False, default="日本語")
-    mode = Column(String, nullable=False, default="news")
+    mode = Column(String, nullable=False, default="general")
 
     watched_pages = relationship(
         "WatchedPage",

@@ -8,12 +8,11 @@ from linebot.models import (
     CarouselContainer, SeparatorComponent
 )
 from app.config import settings
-import time
 from jose import jwk, jwt
 from jose.utils import base64url_decode
 from fastapi import Header, HTTPException, status
 import httpx
-import time
+
 
 # ────────────────────────────────────────────────
 # LINE SDK インスタンス
@@ -64,6 +63,26 @@ async def push_summarized_text(line_id: str, articles: str, summaries: str, imag
     )
     _push(line_id, flex)
 
+
+async def push_summarized_text_scheduler(line_id: str, articles: str, summaries: str, images: List[str]):
+    bubbles = [build_flex_for_article_diffs(a, s, i) for a, s, i in zip(articles, summaries, images)]
+    print("bubbles[0]:", bubbles[0])
+    carousel = CarouselContainer(contents=bubbles)
+    flex = FlexSendMessage(
+        alt_text='要約記事',
+        contents=carousel
+    )
+    _push(line_id, flex)
+
+async def push_no_updated(line_id: str):
+    """
+    新着記事がないときに「更新情報はありません」をプッシュ送信します。
+    """
+    msg = TextSendMessage(
+        text="更新情報はありません。"
+    )
+    _push(line_id, [msg])
+
 # =================================================
 # 4. IDトークン検証
 # =================================================
@@ -83,7 +102,7 @@ async def verify_id_token(id_token: str) -> dict:
 
     params = {
         "id_token": id_token,
-        "client_id": 2007363432,
+        "client_id": settings.LIFF_CHANNEL_ID
     }
 
     async with httpx.AsyncClient() as client:
@@ -190,3 +209,107 @@ def build_flex_for_article(
         footer=footer
     )
 
+
+def build_flex_for_article_diffs(
+    arts: List[dict],
+    summaries: List[str],
+    img_urls: List[str]
+) -> FlexSendMessage:
+    """
+    arts: [
+      { "url": str, "title": str, "published_date": str, ... },
+      ...
+    ]
+    summaries: 要約文字列のリスト
+    img_urls: 画像URLのリスト (画像なしは空文字列)
+    """
+    bubbles: List[BubbleContainer] = []
+
+    # arts, summaries, img_urls は必ず同じ長さで渡してください
+    for art, summary, img_url in zip(arts, summaries, img_urls):
+        # Hero 画像
+        hero = ImageComponent(
+            url=img_url,
+            size="full",
+            aspect_ratio="16:9",
+            aspect_mode="cover"
+        ) if img_url else None
+
+        # Body 部分のコンポーネントを組み立て
+        body_items = []
+        if hero:
+            body_items.append(hero)
+
+        text_items = []
+        # タイトル（fallback で URL）
+        text_items.append(
+            TextComponent(
+                text=art.get("title", art.get("url", "")),
+                weight="bold",
+                size="xl",
+                wrap=True
+            )
+        )
+        # 公開日時
+        pub = art.get("published_date")
+        if pub:
+            text_items.append(
+                TextComponent(
+                    text=f"🕒 {pub}",
+                    size="xs",
+                    color="#888888",
+                    margin="sm"
+                )
+            )
+        # 区切り線
+        text_items.append(SeparatorComponent(margin="md"))
+        # 要約
+        text_items.append(
+            TextComponent(
+                text=summary,
+                size="sm",
+                wrap=True,
+                margin="md"
+            )
+        )
+
+        body_items.append(
+            BoxComponent(
+                layout="vertical",
+                spacing="md",
+                padding_all="16px",
+                contents=text_items
+            )
+        )
+
+        # Footer のボタン
+        footer = BoxComponent(
+            layout="vertical",
+            spacing="sm",
+            padding_all="16px",
+            contents=[
+                ButtonComponent(
+                    style="primary",
+                    height="sm",
+                    action=URIAction(
+                        label="▶️ 詳細を見る",
+                        uri=art.get("url", "")
+                    )
+                )
+            ]
+        )
+
+        bubbles.append(
+            BubbleContainer(
+                direction="ltr",
+                body=BoxComponent(layout="vertical", contents=body_items),
+                footer=footer
+            )
+        )
+
+    # Bubble がひとつもないとエラーになるので要件に応じてガード
+    if not bubbles:
+        raise ValueError("Flex のバブルがありません (arts/summaries/img_urls が空)")
+
+    carousel = CarouselContainer(contents=bubbles)
+    return FlexSendMessage(alt_text="記事の差分要約", contents=carousel)

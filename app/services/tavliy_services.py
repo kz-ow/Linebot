@@ -23,7 +23,7 @@ async def search_articles(
 
     return response.get("results", []), response.get("images", [])
 
-# 定期更新用(Crawl)
+# 定期更新用(Extract)
 async def serach_articles_for_scheduler(
     endpoint_url: str,
 ):
@@ -31,10 +31,11 @@ async def serach_articles_for_scheduler(
         raise ValueError("endpoint_url must be provided")
 
     response = await client.extract(
-        url=endpoint_url
+        urls=[endpoint_url],
+        include_images=True
     )
 
     if not response:
         raise ValueError("response is empty")
 
-    return response.get("results", []), response.get("images", [])
+    return response.get("results", [])

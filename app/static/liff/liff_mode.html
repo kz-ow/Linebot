@@ -41,22 +41,24 @@
 <body class="bg-slate-100 min-h-screen flex items-center justify-center">
 
   <div class="w-full max-w-md bg-white rounded-xl shadow p-6">
-    <h1 class="text-lg font-bold mb-5 text-center">ニュース/一般</h1>
+    <h1 class="text-lg font-bold mb-5 text-center">ニュース / 一般</h1>
 
     <form id="modeForm" class="grid gap-3 select-none">
       <!-- 定期更新 ON/OFF -->
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>ニュース</span>
+        <span>一般
+          <span class="text-sm text-gray-500">(デフォルト)</span>
+        </span>
         <label class="switch">
-          <input id="radio-on" type="radio" name="mode" value="news" />
+          <input id="radio-on" type="radio" name="mode" value="general" />
           <span class="slider"></span>
         </label>
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>一般</span>
+        <span>ニュース</span>
         <label class="switch">
-          <input id="radio-off" type="radio" name="mode" value="general" />
+          <input id="radio-off" type="radio" name="mode" value="news" />
           <span class="slider"></span>
         </label>
       </div>
@@ -71,9 +73,9 @@
     </button>
   </div>
 
-  <script>
+<script>
 /* ===== 環境設定 ===== */
-const LIFF_ID       = "2007363432-VoWb7qW0";      // build 時に置換
+const LIFF_ID       = "2007471332-laDaGrpg";      // build 時に置換
 const POST_ENDPOINT = "/register/mode";    // 相対 or 絶対 URL
 /* ================== */
 

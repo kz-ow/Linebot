@@ -21,7 +21,6 @@ class WatchedPage(Base):
         index=True
     )
     url           = Column(Text, nullable=False)
-    last_hash     = Column(String, nullable=False, default="")     # 差分検知用ハッシュ
     last_content  = Column(Text,   nullable=False, default="")     # 前回取得テキスト
     last_checked  = Column(
         TIMESTAMP(timezone=True), 
