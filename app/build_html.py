@@ -4,9 +4,9 @@ from app.config import settings
 
 # liff_category.htmlにLIFF_IDを埋め込み
 LIFF_HTML_PATHS = {
-    "LIFF_ID_CATEGORY": "/app/app/static/liff/liff_mode.html",
-    "LIFF_ID_DETAIL": "/app/app/static/liff/liff_language.html",
-    "LIFF_ID_REGULAR": "/app/app/static/liff/liff_scheduler.html"
+    "LIFF_ID_MODE": "/app/app/static/liff/js/liff_mode.js",
+    "LIFF_ID_LANGUAGE": "/app/app/static/liff/js/liff_language.js",
+    "LIFF_ID_SCHEDULER": "/app/app/static/liff/js/liff_scheduler.js"
 }
 
 

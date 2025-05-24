@@ -10,9 +10,9 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str 
     GEMINI_API_KEY: str
     GEMINI_REGION: str
-    LIFF_ID_DETAIL: str
-    LIFF_ID_REGULAR: str
-    LIFF_ID_CATEGORY: str
+    LIFF_ID_MODE: str
+    LIFF_ID_SCHEDULER: str
+    LIFF_ID_LANGUAGE: str
     LIFF_CHANNEL_ID: str
     TAVILY_API_KEY: str
 

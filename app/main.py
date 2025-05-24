@@ -16,7 +16,7 @@ app = FastAPI(
 )
 
 # LIFFのHTMLファイルを提供するためのルーティング
-app.mount("/liff", StaticFiles(directory="app/static/liff/"), name="liff")
+app.mount("/liff", StaticFiles(directory="app/static/liff/html/"), name="liff")
 
 app.include_router(line.router, prefix="/webhook", tags=["LineWebhook"])
 app.include_router(news.router,   prefix="/news",    tags=["News"])

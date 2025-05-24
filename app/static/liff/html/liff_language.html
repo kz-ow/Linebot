@@ -13,7 +13,6 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
-    /* ── ラジオをスイッチ風に ── */
     .switch {
       --w: 3rem;
       --h: 1.6rem;
@@ -88,7 +87,7 @@
       </div>
       
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>"韓国語"</span>
+        <span>韓国語</span>
         <label class="switch">
           <input id="radio-ko" type="radio" name="lang" value="韓国語" />
           <span class="slider"></span>
@@ -96,7 +95,7 @@
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>"中国語"</span>
+        <span>中国語</span>
         <label class="switch">
           <input id="radio-zh" type="radio" name="lang" value="中国語" />
           <span class="slider"></span>
@@ -104,12 +103,14 @@
       </div>
 
       <div class="flex items-center justify-between p-3 rounded-lg border">
-        <span>"ロシア語"</span>
+        <span>ロシア語</span>
         <label class="switch">
           <input id="radio-ru" type="radio" name="lang" value="ロシア語" />
           <span class="slider"></span>
         </label>
       </div>
+
+    </form>
 
     <button id="sendButton"
             type="button"
@@ -120,58 +121,6 @@
     </button>
   </div>
 
-  <script>
-/* ===== 環境設定 ===== */
-const LIFF_ID       = "2007471332-5p2AZlM9" 
-// const POST_ENDPOINT = "/app/register/category/";
-const POST_ENDPOINT = "/register/language"; 
-/* ================== */
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const insideLiff = typeof window.liff !== 'undefined';
-  let idToken = null;
-
-  if (insideLiff) {
-    await liff.init({ liffId: LIFF_ID });
-    await liff.ready;
-    idToken = liff.getIDToken() || null;  // ← 再代入
-  }
-
-  const radios  = document.querySelectorAll('input[name="lang"]');
-  const sendBtn = document.getElementById('sendButton');
-
-  // ラジオは排他的なので、選択有無だけ判定
-  radios.forEach(r => r.addEventListener('change', () => {
-    sendBtn.disabled = !document.querySelector('input[name="lang"]:checked');
-  }));
-
-  sendBtn.addEventListener('click', async () => {
-    const chosen = document.querySelector('input[name="lang"]:checked')?.value;
-    if (!chosen) return;
-    const headers = { 'Content-Type': 'application/json' };
-    if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
-    
-    try {
-          const res = await fetch(POST_ENDPOINT, {
-            method : 'POST',
-            headers: headers,
-            body   : JSON.stringify({ lang: [chosen] })
-          });
-
-          if (!res.ok) throw new Error('server ' + res.status);
-          console.log('POST success');
-
-          if (insideLiff) {
-            await liff.closeWindow();
-          } else {
-            alert('送信しました！');
-          }
-        } catch (err) {
-          console.error('POST failed:', err);
-          alert('送信に失敗しました');
-      }
-  });
-});
-  </script>
+  <script src="/app/app/static/liff/js/liff_language.js"></script>
 </body>
 </html>
