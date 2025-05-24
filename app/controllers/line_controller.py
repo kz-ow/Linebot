@@ -112,14 +112,11 @@ async def handle_webhook(request: Request):
                     continue
 
                 # 記事の検索
-                print(f"[INFO] user.mode: {user.mode}")
                 articles, images = await search_articles(text=text, mode=user.mode)
 
                 # 要約の取得
                 summaries = await summarize_articles(articles=articles, language=user.language)
                 
-                print(f"[INFO] line_id in contloer: {line_id}")
-                print(f"[INFO] line_id in DB: {user.line_id}")
                 await push_summarized_text(line_id=line_id, articles=articles, summaries=summaries, images=images)
 
                 # 簡易 subscribe/unsubscribe/status コマンドも保持

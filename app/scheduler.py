@@ -7,8 +7,6 @@ from app.services.tavliy_services import serach_articles_for_scheduler
 from app.services.gemini_service import summarize_articles_diffs
 from app.services.line_service import push_summarized_text_scheduler, push_no_updated
 from difflib import unified_diff
-from datetime import datetime
-import hashlib
 
 
 # 日本（東京）向けタイムゾーンを指定したい場合
@@ -18,14 +16,10 @@ async def scheduled_personalized_news_summary():
     async with async_session() as session:
         # 1) DB から購読ユーザー一覧を取得
         users = await get_all_users(session)
-        print(f"購読ユーザー数: {len(users)}")
 
         # 2) ユーザーごとに記事取得・要約・プッシュ送信
         for user in users:
             endpoint_url = user.endpoint_url
-
-            print("[INFO] User:", user.line_id, "Endpoint URL:", endpoint_url)
-
             new_articles = []
             summaries   = []
             images      = []
