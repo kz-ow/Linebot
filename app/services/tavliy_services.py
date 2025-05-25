@@ -15,7 +15,7 @@ async def search_articles(
     print("user mode: ", mode)
     response = await client.search(
         query=text,
-        topic="general",
+        topic=mode,
         days=4,
         limit=1,
         include_images = True,

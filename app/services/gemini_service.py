@@ -66,6 +66,7 @@ async def summarize_articles(articles: List[dict], language: str) -> List[str]:
     複数記事を並列で要約
     """
     tasks = []
+    print(f"[INFO] language in summarize_articles {language}...")
     for art in articles[:3]:
         # 説明文が空なら本文(raw_content)を使う
         body = art.get("content") or art.get("description", "")

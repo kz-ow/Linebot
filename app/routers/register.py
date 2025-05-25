@@ -19,8 +19,10 @@ async def post_mode(
     payload: ModePayload,                     
     user_id: Annotated[str, Depends(get_line_user_id)],
     db: Annotated[AsyncSession, Depends(get_db)],
-):      
+):  
+    print(f"[INFO] post_mode: {payload.mode}")
     await set_mode(db, user_id, payload.mode)
+
 
 @router.post("/language")
 async def post_language(
@@ -28,7 +30,8 @@ async def post_language(
     user_id: Annotated[str, Depends(get_line_user_id)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    await set_language(db, user_id, payload.language)
+    print(f"[INFO] post_lang: {payload.lang}")
+    await set_language(db, user_id, payload.lang)
 
 @router.post("/scheduler")
 async def post_scheduler(
@@ -37,3 +40,19 @@ async def post_scheduler(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     await set_scheduler(db, user_id, payload.scheduler, payload.endpointUrl)
+
+
+# テスト用
+# from fastapi import Request
+# @router.post("/language")
+# async def register_language(
+#     request: Request,
+#     user_id: Annotated[str, Depends(get_line_user_id)],
+#     db: Annotated[AsyncSession, Depends(get_db)],
+# ):
+#     """
+#     テスト用の言語登録エンドポイント
+#     """
+#     body = await request.json()
+#     print(f"[INFO] raw request body: {body}")
+

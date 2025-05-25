@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   sendBtn.addEventListener('click', async () => {
     const chosen = document.querySelector('input[name="lang"]:checked')?.value;
     if (!chosen) return;
+    alert(`選択された言語: ${chosen}`);
     const headers = { 'Content-Type': 'application/json' };
     if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
     
@@ -31,7 +32,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await fetch(POST_ENDPOINT, {
         method : 'POST',
         headers: headers,
-        body   : JSON.stringify({ lang: [chosen] })
+        cache: 'no-store',
+        body   : JSON.stringify({ lang: chosen })
       });
 
       if (!res.ok) throw new Error('server ' + res.status);

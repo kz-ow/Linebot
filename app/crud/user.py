@@ -53,6 +53,7 @@ async def set_language(
 ):
     user = await get_or_create_user(db, line_id)
     user.language = language if language else "日本語"
+    print(f"[INFO] set_language: {user.language}")
     await db.commit()
 
 
@@ -91,6 +92,7 @@ async def set_mode(
 ):
     user = await get_or_create_user(db, line_id)
     user.mode = mode
+    print(f"[INFO] set_mode: {user.mode}")
     await db.commit()
     
 
