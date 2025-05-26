@@ -3,7 +3,7 @@ from pydantic import BaseModel, validator
 
 class SchedulerPayload(BaseModel):
     scheduler: bool
-    endpointUrl: str
+    endpointUrl: str | None = None
     
     @validator("scheduler")
     def check_scheduler(cls, scheduler: bool) -> bool:

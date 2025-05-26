@@ -8,8 +8,6 @@ from linebot.models import (
     CarouselContainer, SeparatorComponent
 )
 from app.config import settings
-from jose import jwk, jwt
-from jose.utils import base64url_decode
 from fastapi import Header, HTTPException, status
 import httpx
 
@@ -55,7 +53,6 @@ async def push_image_message(user_id: str, image_url: str):
 # =================================================
 async def push_summarized_text(line_id: str, articles: str, summaries: str, images: List[str]):
     bubbles = [build_flex_for_article(a, s, i) for a, s, i in zip(articles, summaries, images)]
-    print("bubbles[0]:", bubbles[0])
     carousel = CarouselContainer(contents=bubbles)
     flex = FlexSendMessage(
         alt_text='要約記事',
@@ -66,7 +63,6 @@ async def push_summarized_text(line_id: str, articles: str, summaries: str, imag
 
 async def push_summarized_text_scheduler(line_id: str, articles: str, summaries: str, images: List[str]):
     bubbles = [build_flex_for_article_diffs(a, s, i) for a, s, i in zip(articles, summaries, images)]
-    print("bubbles[0]:", bubbles[0])
     carousel = CarouselContainer(contents=bubbles)
     flex = FlexSendMessage(
         alt_text='要約記事',
@@ -121,9 +117,6 @@ async def get_line_user_id(
     FastAPI の Depends に使う例。
     Authorization: Bearer <IDトークン> から、検証済みの sub（ユーザーID）を返す。
     """
-    print("")
-    print("[DEBUG] id_token:", authorization)
-    print("")
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing authorization header")
     id_token = authorization.split(" ", 1)[1]

@@ -1,6 +1,8 @@
 # app/scheduler.py
 from sqlalchemy import func
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import asyncio
+import logging
 from app.database import async_session
 from app.crud.user import get_all_users
 from app.services.tavliy_services import serach_articles_for_scheduler
@@ -8,6 +10,9 @@ from app.services.gemini_service import summarize_articles_diffs
 from app.services.line_service import push_summarized_text_scheduler, push_no_updated
 from difflib import unified_diff
 
+# ログを INFO レベルで出す
+logging.basicConfig(level=logging.INFO)
+logging.getLogger('apscheduler').setLevel(logging.INFO)
 
 # 日本（東京）向けタイムゾーンを指定したい場合
 scheduler = AsyncIOScheduler(timezone="Asia/Tokyo")
@@ -17,6 +22,7 @@ async def scheduled_personalized_news_summary():
         # 1) DB から購読ユーザー一覧を取得
         users = await get_all_users(session)
 
+        logging.info(f"[INFO] Found {len(users)} subscribed users.")
         # 2) ユーザーごとに記事取得・要約・プッシュ送信
         for user in users:
             endpoint_url = user.endpoint_url
@@ -96,9 +102,30 @@ def diff_articles(old, new: str) -> str:
 
 
 def start_scheduler():
-    # 毎朝 9:00 に定期実行
+    """
+    APScheduler を使って定期的にニュース要約を行うスケジューラを開始します。
+    """
     scheduler.add_job(
         scheduled_personalized_news_summary,
         'cron',
-        hour=23, minute=39)
+        hour=19, minute=27
+    )
     scheduler.start()
+
+if __name__ == "__main__":
+    """
+    スクリプトが直接実行された場合、スケジューラを開始します。
+    """
+    start_scheduler()
+    print("Scheduler started. Waiting for jobs...")
+    
+    # スケジューラが動作している間はメインスレッドをブロック
+    try:
+        asyncio.get_event_loop().run_forever()
+    except (KeyboardInterrupt, SystemExit):
+        logging.info("Scheduler is stopping...")
+        scheduler.shutdown()
+        logging.info("Scheduler stopped.")
+
+
+

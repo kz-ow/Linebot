@@ -1,5 +1,5 @@
 from sqlalchemy import select, func
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.models.user import User
@@ -53,7 +53,6 @@ async def set_language(
 ):
     user = await get_or_create_user(db, line_id)
     user.language = language if language else "日本語"
-    print(f"[INFO] set_language: {user.language}")
     await db.commit()
 
 
@@ -73,16 +72,29 @@ async def set_scheduler(
             endpoint_url=user.endpoint_url,
         )
         raw_content = article[0]["raw_content"]
-        time_now = func.now()
 
-        # 取得した記事を watched_page に保存
-        watched_page = WatchedPage(
+        # UPSERT: 存在しなければINSERT, 既存ならUPDATE
+        stmt = insert(WatchedPage).values(
             user_id=user.line_id,
-            url = user.endpoint_url,
+            url=user.endpoint_url,
             last_content=raw_content,
-            last_checked=time_now,
+            last_checked=func.now()
+        ).on_conflict_do_update(
+            index_elements=['user_id', 'url'],
+            set_={
+                'last_content': raw_content,
+                'last_checked': func.now(),
+            }
         )
-        db.add(watched_page)
+        await db.execute(stmt)
+    else: # schedulerが無効化された場合は、関連するWatchedPageを削除
+        await db.execute(
+            select(WatchedPage).where(WatchedPage.user_id == user.line_id)
+        )
+        await db.execute(
+            WatchedPage.__table__.delete().where(WatchedPage.user_id == user.line_id)
+        )
+
     await db.commit()
 
 async def set_mode(
@@ -92,7 +104,6 @@ async def set_mode(
 ):
     user = await get_or_create_user(db, line_id)
     user.mode = mode
-    print(f"[INFO] set_mode: {user.mode}")
     await db.commit()
     
 

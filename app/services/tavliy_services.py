@@ -12,7 +12,6 @@ async def search_articles(
     if not text and text == "":
         raise ValueError("text must be provided")
     
-    print("user mode: ", mode)
     response = await client.search(
         query=text,
         topic=mode,

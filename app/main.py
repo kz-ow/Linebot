@@ -25,6 +25,15 @@ app.include_router(news.router,   prefix="/news",    tags=["News"])
 app.include_router(user.router,   prefix="/users",   tags=["User"])
 app.include_router(register.router, prefix="/register",  tags=["Register"])
 
+# health check endpoint
+@app.get("/health", tags=["Health Check"])
+async def health_check():
+    """
+    健康チェック用のエンドポイント。
+    アプリケーションが正常に動作しているかを確認します。
+    """
+    return {"status": "ok", "message": "Application is running smoothly."}
+
 @app.on_event("startup")
 async def startup_event():
     try:
@@ -41,12 +50,6 @@ async def startup_event():
     except Exception as e:
         logger.exception(f"LIFFのHTMLファイルのビルドに失敗しました: {e}")
 
-    try:
-        start_scheduler()
-        logger.info("スケジューラーの初期化に成功しました。")
-    except Exception as e:
-        logger.exception(f"スケジューラーの初期化に失敗しました: {e}")
-
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main_dev:app", host="0.0.0.0", port=8000, reload=True)

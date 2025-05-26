@@ -19,3 +19,29 @@ build
 
 # 環境変数ファイル（セキュリティ上、ビルドコンテキストに含めたくない場合）
 .env
+
+# エディタ／IDE
+.vscode/
+.idea/
+
+# Python 仮想環境
+.venv/
+venv/
+env/
+
+# テスト成果物
+.pytest_cache/
+
+# カバレッジレポート
+.coverage
+htmlcov/
+
+# Sphinx ドキュメントビルド
+docs/_build/
+
+# pip wheel のメタデータ
+pip-wheel-metadata/
+
+# OS 固有ファイル
+.DS_Store
+Thumbs.db
