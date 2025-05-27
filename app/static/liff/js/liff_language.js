@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   sendBtn.addEventListener('click', async () => {
     const chosen = document.querySelector('input[name="lang"]:checked')?.value;
     if (!chosen) return;
-    alert(`選択された言語: ${chosen}`);
     const headers = { 'Content-Type': 'application/json' };
     if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
     
