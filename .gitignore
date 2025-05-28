@@ -170,9 +170,5 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# 本番環境
-Dockerfile.web.prod
-requirements.web.prod.txt
-
 # 鍵
 *.pem
