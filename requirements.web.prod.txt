@@ -6,6 +6,7 @@ asyncpg==0.30.0
 httpx==0.28.1
 pydantic>=2.7.0,<3.0
 pydantic-settings==2.3.3
+pydantic-settings-aws==0.1.0
 python-dotenv==1.0.0
 psycopg2-binary==2.9.9
 apscheduler==3.10.1 # 定時配信型にしたい場合は必要
@@ -13,3 +14,4 @@ line-bot-sdk==3.17.1
 google-genai==1.11.0
 python-dateutil==2.9.0.post0
 tavily-python==0.7.2
+boto3==1.38.27
