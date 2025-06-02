@@ -3,7 +3,8 @@ from pydantic_settings_aws import SecretsManagerBaseSettings
 
 class AppSettings(SecretsManagerBaseSettings):
     model_config = SettingsConfigDict(
-        secrets_name="fastapi_"  # AWS Secrets Managerのシークレット名
+        secrets_name="fastapi_",  # AWS Secrets Managerのシークレット名
+        aws_region="ap-northeast-1"
     )
 
     LINE_CHANNEL_SECRET: str
