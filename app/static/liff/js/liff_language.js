@@ -1,5 +1,5 @@
 /* ===== 環境設定 ===== */
-const LIFF_ID       = "2007471332-5p2AZlM9";
+const LIFF_ID       = "__LIFF_ID__";
 const POST_ENDPOINT = "/register/language";
 /* ================== */
 

@@ -1,5 +1,5 @@
 /* ===== 環境設定 ===== */
-const LIFF_ID       = "2007471332-DZnbw6k5";      // build 時に置換
+const LIFF_ID       = "__LIFF_ID__";      // build 時に置換
 const POST_ENDPOINT = "/register/scheduler";    // 相対 or 絶対 URL
 /* ================== */
 
