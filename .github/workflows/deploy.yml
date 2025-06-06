@@ -30,7 +30,7 @@ jobs:
             fi
 
             # 2) リポジトリへ移動して更新
-            cd /home/ec2-user/your-repo   # 適宜変更
+            cd ./Linebot   # 適宜変更
             git pull origin main
 
             # 3) コンテナ再ビルド & 再起動
