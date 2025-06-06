@@ -15,23 +15,26 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          # port: 22   # 変更していなければ省略可
           script: |
             set -euo pipefail
 
-            # 1) (初回のみ) Docker & Compose プラグインが無ければインストール
-            if ! command -v docker &>/dev/null; then
-              sudo yum update -y
-              sudo amazon-linux-extras install docker -y
-              sudo yum install -y docker-compose-plugin
-              sudo systemctl enable --now docker
-              sudo usermod -aG docker $USER   # 次回以降 sudo 不要
-              echo "Docker installed."
-            fi
-
-            # 2) リポジトリへ移動して更新
-            cd ./Linebot   # 適宜変更
+            ##### 1) アプリケーション取得／更新 #####
+            cd ~/Linebot              # デプロイ先ディレクトリに合わせて変更
             git pull origin main
 
-            # 3) コンテナ再ビルド & 再起動
+            ##### 2) 秘密情報入り .env を生成（毎回上書き） #####
+            cat > .env << 'EOF'
+            
+            # --- PostgreSQL ---
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+
+            EOF
+            chmod 600 .env
+
+            ##### 3) コンテナ再ビルド & 再起動 #####
             docker compose up -d --build
+
+            # スクリプト終了時に .env を確実に消す
+            trap 'rm -f .env' EXIT
