@@ -45,6 +45,3 @@ ENV PYTHONUNBUFFERED=1 \
     APP_ENV=production \
     LOG_LEVEL=info
 
-# ポート公開
-EXPOSE 8000
-
