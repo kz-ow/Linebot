@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ボタン活性化判定関数
   function updateSendBtnState() {
     const chosen = document.querySelector('input[name="scheduler"]:checked')?.value;
-    if (chosen === 'off') {
+    if (chosen === "off") {
       sendBtn.disabled = false;
-    } else if (chosen === 'on') {
+    } else if (chosen === "on") {
       const url = urlInput.value.trim();
       // https:// で始まるもののみ有効
       sendBtn.disabled = !(url && url.startsWith('https://'));
@@ -37,9 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ラジオ選択時の挙動
   radios.forEach(radio => radio.addEventListener('change', () => {
-    if (radio.value === 'on' && radio.checked) {
+    if (radio.value === "on" && radio.checked) {
       urlInputContainer.classList.remove('hidden');
-    } else if (radio.value === 'off' && radio.checked) {
+    } else if (radio.value === "off" && radio.checked) {
       urlInputContainer.classList.add('hidden');
     }
     updateSendBtnState();
@@ -56,8 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const headers = { 'Content-Type': 'application/json' };
     if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
 
-    const payload = { scheduler: chosen == 'on' };
-    if (chosen === 'on') payload.endpointUrl = urlInput.value.trim();
+    const payload = { scheduler: chosen === "on" };
+    if (chosen === "on") payload.endpointUrl = urlInput.value.trim();
 
     try {
       const res = await fetch(POST_ENDPOINT, {
