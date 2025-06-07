@@ -1,4 +1,4 @@
-name: Deploy to EC2 (Amazon Linux 2)
+name: Deploy via SSM
 
 on:
   push:
@@ -7,34 +7,34 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write    # OIDC トークン取得を許可
+      contents: read     # actions/checkout のため
 
     steps:
-      - name: Remote deploy to Amazon Linux 2
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -euo pipefail
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-            ##### 1) アプリケーション取得／更新 #####
-            cd ~/Linebot              # デプロイ先ディレクトリに合わせて変更
-            git pull origin main
-
-            ##### 2) 秘密情報入り .env を生成（毎回上書き） #####
-            cat > .env << 'EOF'
-            
-            # --- PostgreSQL ---
-            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-
-            EOF
-            chmod 600 .env
-
-            ##### 3) コンテナ再ビルド & 再起動 #####
-            docker compose up -d --build
-
-            # スクリプト終了時に .env を確実に消す
-            trap 'rm -f .env' EXIT
+      - name: Send command via SSM
+        uses: MercuryTechnologies/aws-ssm-send-command-action@main
+        with:
+          document-name: AWS-RunShellScript
+          targets: '[{"Key":"instanceids","Values":["${{ secrets.EC2_INSTANCE_ID }}"]}]'
+          parameters: >-
+            {"commands":[
+               "cd ~/Linebot",
+               "git pull origin main",
+               "cat > .env <<EOF\nPOSTGRES_USER=***\nPOSTGRES_PASSWORD=***\nPOSTGRES_DB=***\nEOF",
+               "chmod 600 .env",
+               "docker compose up -d --build",
+               "rm -f .env"
+            ]}
+          wait-until-command-executed: true    
+          max-wait-time: 600                  
+          log-failed-command-invocations: true  
