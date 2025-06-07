@@ -5,7 +5,6 @@ from starlette.concurrency import run_in_threadpool
 from app.routers import line, news, user, register
 from app.database import init_models
 from app.build_html import build_liff_html
-from app.scheduler import start_scheduler
 import logging
 
 logger = logging.getLogger("uvicorn.error")
