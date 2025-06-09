@@ -12,7 +12,6 @@ services:
               "--bind", "0.0.0.0:80", 
               "--log-level", "info"]
     container_name: fastapi_linebot
-
     ports:
       - "80:80"        # 外部に公開
     depends_on:
