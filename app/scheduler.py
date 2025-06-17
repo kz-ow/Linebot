@@ -25,10 +25,19 @@ async def scheduled_personalized_news_summary():
         logging.info(f"[INFO] Found {len(users)} subscribed users.")
         # 2) ユーザーごとに記事取得・要約・プッシュ送信
         for user in users:
-            endpoint_url = user.endpoint_url
+            if not user.endpoint_url:
+                # endpoint_url が未設定のユーザーはスキップ
+                continue
+            else:
+                endpoint_url = user.endpoint_url
+                
             new_articles = []
             summaries   = []
             images      = []
+
+            if not user.endpoint_url:
+                # endpoint が未指定ならスキップ
+                continue
             
             for wp in user.watched_pages:
                 # --- ニュース取得 ---
@@ -108,7 +117,7 @@ def start_scheduler():
     scheduler.add_job(
         scheduled_personalized_news_summary,
         'cron',
-        hour=19, minute=27
+        hour=8, minute=00
     )
     scheduler.start()
 

@@ -73,7 +73,6 @@ async def set_scheduler(
         )
         raw_content = article[0]["raw_content"]
 
-        # UPSERT: 存在しなければINSERT, 既存ならUPDATE
         stmt = insert(WatchedPage).values(
             user_id=user.line_id,
             url=user.endpoint_url,
@@ -88,9 +87,6 @@ async def set_scheduler(
         )
         await db.execute(stmt)
     else: # schedulerが無効化された場合は、関連するWatchedPageを削除
-        await db.execute(
-            select(WatchedPage).where(WatchedPage.user_id == user.line_id)
-        )
         await db.execute(
             WatchedPage.__table__.delete().where(WatchedPage.user_id == user.line_id)
         )

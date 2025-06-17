@@ -1,21 +1,17 @@
 # app/schemas/scheduler_payload.py
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, root_validator
 
 class SchedulerPayload(BaseModel):
     scheduler: bool
     endpointUrl: str | None = None
+
+    @root_validator
+    def check_endpoint_when_enabled(cls, values):
+        scheduler = values.get("scheduler")
+        endpoint = values.get("endpointUrl")
+        if scheduler:
+            if not endpoint or not endpoint.startswith("https://"):
+                raise ValueError(f"invalid endpointUrl: {endpoint}")
+        return values
+        
     
-    @validator("scheduler")
-    def check_scheduler(cls, scheduler: bool) -> bool:
-        if not isinstance(scheduler, bool):
-            raise ValueError(f"invalid scheduler: {scheduler}")
-        else:
-            return scheduler
-    
-    @validator("endpointUrl")
-    def check_endpointUrl(cls, endpointUrl: str) -> str:
-        is_valid = endpointUrl.startswith("https://")
-        if not is_valid:
-            raise ValueError(f"invalid endpointUrl: {endpointUrl}")
-        else:
-            return endpointUrl
