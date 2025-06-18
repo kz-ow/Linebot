@@ -58,7 +58,13 @@ async def push_summarized_text(line_id: str, articles: str, summaries: str, imag
         alt_text='要約記事',
         contents=carousel
     )
-    _push(line_id, flex)
+
+    # 記事が1件もない場合はガード
+    if not bubbles:
+        _push(line_id, TextSendMessage(text="ヒットした情報がありませんでした．"))
+        raise ValueError("No articles to summarize")
+    else:
+        _push(line_id, flex)
 
 
 async def push_summarized_text_scheduler(line_id: str, articles: str, summaries: str, images: List[str]):
