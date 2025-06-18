@@ -12,6 +12,9 @@ services:
               "--bind", "0.0.0.0:80", 
               "--log-level", "info"]
     container_name: fastapi_linebot
+    environment:
+       - AWS_REGION=${AWS_REGION}
+       - AWS_SECRET_NAME=${AWS_SECRET_NAME}
     ports:
       - "80:80"        # 外部に公開
     depends_on:
@@ -33,6 +36,9 @@ services:
       network: host  # ビルド時にホストネットワークを利用
     container_name: scheduler_dev
     command: ["python", "-m", "app.scheduler"]
+    environment:
+       - AWS_REGION=${AWS_REGION}
+       - AWS_SECRET_NAME=${AWS_SECRET_NAME}
     depends_on:
       - db
     volumes:

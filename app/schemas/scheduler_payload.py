@@ -5,7 +5,7 @@ class SchedulerPayload(BaseModel):
     scheduler: bool
     endpointUrl: str | None = None
 
-    @root_validator
+    @root_validator(skip_on_failure=True)
     def check_endpoint_when_enabled(cls, values):
         scheduler = values.get("scheduler")
         endpoint = values.get("endpointUrl")

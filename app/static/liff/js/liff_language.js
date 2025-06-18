@@ -1,5 +1,5 @@
 /* ===== 環境設定 ===== */
-const LIFF_ID       = "__LIFF_ID__";
+const LIFF_ID       = "__LIFF_ID__";      // build 時に置換
 const POST_ENDPOINT = "/register/language";
 /* ================== */
 

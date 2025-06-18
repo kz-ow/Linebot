@@ -30,7 +30,7 @@ jobs:
             {"commands":[
                "cd ~/Linebot",
                "git pull origin main",
-               "cat > .env <<EOF\nPOSTGRES_USER=***\nPOSTGRES_PASSWORD=***\nPOSTGRES_DB=***\nEOF",
+               "cat > .env <<EOF\nPOSTGRES_USER=***\nPOSTGRES_PASSWORD=***\nPOSTGRES_DB=***\nAWS_REGION/=***\nAWS_SECRESTS_NAME=***EOF",
                "chmod 600 .env",
                "docker compose up -d --build",
                "rm -f .env"

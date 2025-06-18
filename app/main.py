@@ -1,11 +1,24 @@
 # app/main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
+from starlette.middleware.base import BaseHTTPMiddleware
 from app.routers import line, news, user, register
 from app.database import init_models
 from app.build_html import build_liff_html
 import logging
+
+
+# リッチメニュー時にキャッシュを無効化するミドルウェア
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response: Response = await call_next(request)
+        # キャッシュ無効化ヘッダー
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+        response.headers["Pragma"]        = "no-cache"
+        response.headers["Expires"]       = "0"
+        return response
+    
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -15,6 +28,7 @@ app = FastAPI(
     version="0.1.0",
     redirect_slashes=False
 )
+app.add_middleware(NoCacheMiddleware)
 
 # LIFFのHTMLファイルを提供するためのルーティング
 app.mount("/liff", StaticFiles(directory="app/static/liff/"), name="liff")

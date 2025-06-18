@@ -1,10 +1,17 @@
-from pydantic_settings import SettingsConfigDict
+from pydantic_settings import SettingsConfigDict, BaseSettings
 from pydantic_settings_aws import SecretsManagerBaseSettings
+
+# AWS Secrets Managerからの設定を取得するための設定
+class Settings(BaseSettings):
+    AWS_SECRET_NAME: str
+    AWS_REGION: str
+
+aws_settings = Settings()
 
 class AppSettings(SecretsManagerBaseSettings):
     model_config = SettingsConfigDict(
-        secrets_name="fastapi_",  # AWS Secrets Managerのシークレット名
-        aws_region="ap-northeast-1"
+        secrets_name=aws_settings.AWS_SECRET_NAME,  # AWS Secrets Managerのシークレット名
+        aws_region=aws_settings.AWS_REGION  # AWSリージョン
     )
 
     LINE_CHANNEL_SECRET: str
@@ -26,3 +33,4 @@ class AppSettings(SecretsManagerBaseSettings):
     ]
 
 settings = AppSettings()
+
