@@ -32,7 +32,7 @@ jobs:
                "git pull origin main",
                "cat > .env <<EOF\nPOSTGRES_USER=${{ secrets.POSTGRES_USER }}\nPOSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}\nPOSTGRES_DB=${{ secrets.POSTGRES_DB }}\nAWS_REGION=${{ secrets.AWS_REGION }}\nAWS_SECRET_NAME=${{ secrets.AWS_SECRET_NAME }}EOF",
                "chmod 600 .env",
-               "if [ -z \"$(docker ps -q)\" ]; then docker compose up -d; else docker compose up -d --build; fi",
+               "if [ -z \"$(docker ps -aq)\" ]; then docker compose up -d; else docker compose up -d --build; fi",
                "rm -f .env"
             ]}
           wait-until-command-executed: true    
