@@ -27,7 +27,7 @@ jobs:
           document-name: AWS-RunShellScript
           targets: '[{"Key":"instanceids","Values":["${{ secrets.EC2_INSTANCE_ID }}"]}]'
           parameters: >-
-            {"workingDirectory": [" ${{ secrets.AWS_WORKING_DIR }} "]
+           { "workingDirectory":[" ${{ secrets.AWS_WORKING_DIR }} "],
              "commands":[
                "cd ~/Linebot",
                "git pull origin main",
@@ -35,7 +35,8 @@ jobs:
                "chmod 600 .env",
                "if [ -z \"$(docker ps -aq)\" ]; then docker compose up -d; else docker compose up -d --build; fi",
                "rm -f .env"
-            ]}
+            ]
+           }
           wait-until-command-executed: true    
           max-wait-time: 600                  
           log-failed-command-invocations: true  
