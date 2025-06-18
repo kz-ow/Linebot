@@ -3,6 +3,16 @@ const LIFF_ID       = "__LIFF_ID__";      // build 時に置換
 const POST_ENDPOINT = "/register/mode";    // 相対 or 絶対 URL
 /* ================== */
 
+document.addEventListener('DOMContentLoaded', async () => {
+  const insideLiff = typeof window.liff !== 'undefined';
+  let idToken = null;
+
+  if (insideLiff) {
+    await liff.init({ liffId: LIFF_ID });
+    await liff.ready;
+    idToken = liff.getIDToken() || null;
+  }
+
   const radios = document.querySelectorAll('input[name="mode"]');
   const sendBtn = document.getElementById('sendButton');
 

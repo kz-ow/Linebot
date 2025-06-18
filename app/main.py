@@ -28,7 +28,10 @@ app = FastAPI(
     version="0.1.0",
     redirect_slashes=False
 )
+
+# キャッシュを無効化するミドルウェアを追加
 app.add_middleware(NoCacheMiddleware)
+
 
 # LIFFのHTMLファイルを提供するためのルーティング
 app.mount("/liff", StaticFiles(directory="app/static/liff/"), name="liff")
@@ -38,6 +41,7 @@ app.include_router(news.router,   prefix="/news",    tags=["News"])
 app.include_router(user.router,   prefix="/users",   tags=["User"])
 app.include_router(register.router, prefix="/register",  tags=["Register"])
 
+
 # health check endpoint
 @app.get("/health", tags=["Health Check"])
 async def health_check():
@@ -46,6 +50,7 @@ async def health_check():
     アプリケーションが正常に動作しているかを確認します。
     """
     return {"status": "ok", "message": "Application is running smoothly."}
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -62,6 +67,7 @@ async def startup_event():
         logger.info("LIFFのHTMLファイルのビルドに成功しました。")
     except Exception as e:
         logger.exception(f"LIFFのHTMLファイルのビルドに失敗しました: {e}")
+
 
 if __name__ == '__main__':
     import uvicorn
