@@ -27,7 +27,8 @@ jobs:
           document-name: AWS-RunShellScript
           targets: '[{"Key":"instanceids","Values":["${{ secrets.EC2_INSTANCE_ID }}"]}]'
           parameters: >-
-            {"commands":[
+            {"workingDirectory": [" ${{ secrets.AWS_WORKING_DIR }} "]
+             "commands":[
                "cd ~/Linebot",
                "git pull origin main",
                "cat > .env <<EOF\nPOSTGRES_USER=${{ secrets.POSTGRES_USER }}\nPOSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}\nPOSTGRES_DB=${{ secrets.POSTGRES_DB }}\nAWS_REGION=${{ secrets.AWS_REGION }}\nAWS_SECRET_NAME=${{ secrets.AWS_SECRET_NAME }}\nEOF\n",
