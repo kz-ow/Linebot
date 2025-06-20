@@ -30,6 +30,8 @@ jobs:
            { "workingDirectory":[" ${{ secrets.AWS_WORKING_DIR }} "],
              "commands":[
                "cd ~/Linebot",
+               "git reset --hard origin/main",
+               "git clean -fd",
                "git pull origin main",
                "cat > .env <<EOF\nPOSTGRES_USER=${{ secrets.POSTGRES_USER }}\nPOSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}\nPOSTGRES_DB=${{ secrets.POSTGRES_DB }}\nAWS_REGION=${{ secrets.AWS_REGION }}\nAWS_SECRET_NAME=${{ secrets.AWS_SECRET_NAME }}\nEOF\n",
                "chmod 600 .env",
