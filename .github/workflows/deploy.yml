@@ -29,7 +29,6 @@ jobs:
           parameters: >-
            { "workingDirectory":[" ${{ secrets.AWS_WORKING_DIR }} "],
              "commands":[
-               "cd Linebot",
                "git reset --hard origin/main",
                "git clean -fd",
                "git pull origin main",
