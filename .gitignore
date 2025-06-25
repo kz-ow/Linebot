@@ -172,3 +172,7 @@ cython_debug/
 
 # 鍵
 *.pem
+
+docker-compose_dev.yml
+
+config_prod.py
