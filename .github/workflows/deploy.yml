@@ -1,3 +1,4 @@
+# .github/workflows/deploy.yml
 name: Deploy via SSM
 
 on:
@@ -8,8 +9,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write    # OIDC トークン取得を許可
-      contents: read     # actions/checkout のため
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -25,23 +26,32 @@ jobs:
         uses: MercuryTechnologies/aws-ssm-send-command-action@main
         with:
           document-name: AWS-RunShellScript
-          targets: '[{"Key":"InstanceIds","Values":["${{ secrets.EC2_INSTANCE_ID }}"]}]'
-          parameters: >-
-           { "workingDirectory":[" ${{ secrets.AWS_WORKING_DIR }} "],
-             "commands":[
-               "eval $(ssh-agent -s)",
-               "echo '${{ secrets.SSH_PRIVATE_KEY }}' | tr -d '\\r' | ssh-add -",
-               "if [ ! -d Linebot/.git ]; then git clone git@github.com:kz-ow/Linebot.git; fi",
-               "cd Linebot",
-               "git reset --hard origin/main",
-               "git clean -fd",
-               "git pull origin main",
-               "cat > .env <<EOF\nPOSTGRES_USER=${{ secrets.POSTGRES_USER }}\nPOSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}\nPOSTGRES_DB=${{ secrets.POSTGRES_DB }}\nAWS_REGION=${{ secrets.AWS_REGION }}\nAWS_SECRET_NAME=${{ secrets.AWS_SECRET_NAME }}\nEOF\n",
-               "chmod 600 .env",
-               "if [ -z \"$(docker ps -aq)\" ]; then docker compose up -d; else docker compose up -d --build; fi",
-               "rm -f .env"
-            ]
-           }
-          wait-until-command-executed: true    
-          max-wait-time: 600                  
-          log-failed-command-invocations: true  
+          targets: |
+            [{"Key":"InstanceIds","Values":["${{ secrets.EC2_INSTANCE_ID }}"]}]
+
+          workingDirectory: ${{ secrets.AWS_WORKING_DIR }}
+
+          commands: |
+            - eval "$(ssh-agent -s)"
+            - echo '${{ secrets.SSH_PRIVATE_KEY }}' | tr -d '\r' | ssh-add -
+            - if [ ! -d Linebot/.git ]; then git clone git@github.com:kz-ow/Linebot.git; fi
+            - cd Linebot
+            - git fetch --all --prune
+            - git reset --hard origin/main
+            - git clean -fd
+            - git pull --ff-only
+            - |
+              cat > .env <<'EOF'
+              POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+              POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+              POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+              AWS_REGION=${{ secrets.AWS_REGION }}
+              AWS_SECRET_NAME=${{ secrets.AWS_SECRET_NAME }}
+              EOF
+            - chmod 600 .env
+            - docker compose up -d --build
+            - rm -f .env
+
+          wait-until-command-executed: true
+          max-wait-time: 600
+          log-failed-command-invocations: true
