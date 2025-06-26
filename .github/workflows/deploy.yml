@@ -29,6 +29,9 @@ jobs:
           parameters: >-
            { "workingDirectory":[" ${{ secrets.AWS_WORKING_DIR }} "],
              "commands":[
+               "eval $(ssh-agent -s)",
+               "ssh-add ${{ secrets.SSH_PRIVATE_KEY }}",
+               "if [ ! -d .git]; then git clone git@github.com:kz-ow/Linebot.git && cd Linebot; fi"
                "git reset --hard origin/main",
                "git clean -fd",
                "git pull origin main",
