@@ -30,7 +30,7 @@ jobs:
            { "workingDirectory":[" ${{ secrets.AWS_WORKING_DIR }} "],
              "commands":[
                "eval $(ssh-agent -s)",
-               "echo '${{ secrets.SSH_PRIVATE_KEY }}' | tr -d '\r' | ssh-add -",
+               "echo '${{ secrets.SSH_PRIVATE_KEY }}' | tr -d '\\r' | ssh-add -",
                "if [ ! -d Linebot/.git ]; then git clone git@github.com:kz-ow/Linebot.git; fi",
                "cd Linebot",
                "git reset --hard origin/main",
