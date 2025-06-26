@@ -31,7 +31,8 @@ jobs:
              "commands":[
                "eval $(ssh-agent -s)",
                "ssh-add ${{ secrets.SSH_PRIVATE_KEY }}",
-               "if [ ! -d .git ]; then git clone git@github.com:kz-ow/Linebot.git && cd Linebot; fi",
+               "if [ ! -d Linebot/.git ]; then git clone git@github.com:kz-ow/Linebot.git; fi",
+               "cd Linebot",
                "git reset --hard origin/main",
                "git clean -fd",
                "git pull origin main",
